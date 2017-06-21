@@ -6,11 +6,11 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
-import { NavbarComponent } from './navbar/navbar.component';
-import { GroupsComponent } from './groups/groups.component';
-import { GroupDetailComponent } from './group-detail/group-detail.component';
-import { NewGroupComponent } from './new-group/new-group.component';
-import { GroupsService } from './_services/groups.service';
+import { NavbarComponent } from './navbar';
+import { GroupsComponent } from './groups';
+import { GroupDetailComponent } from './group-detail';
+import { NewGroupComponent } from './new-group';
+import { GroupsService } from './_services';
 
 const appRoutes: Routes = [
   { path: 'groups', component: GroupsComponent },
