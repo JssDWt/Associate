@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
 import { Group } from '../_models';
-import { GroupsService } from '../_services';
+import { GroupService } from '../_services';
 
 @Component({
   templateUrl: './new-group.component.html'
@@ -15,7 +15,7 @@ export class NewGroupComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private groupsService: GroupsService,
+    private groupsService: GroupService,
     private modalService: NgbModal
   ) { }
   

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 
 import { Group } from '../_models';
-import { GroupsService } from '../_services';
+import { GroupService } from '../_services';
 
 
 @Component({
@@ -13,7 +13,7 @@ export class GroupsComponent implements OnInit {
   groups: Group[];
   
   constructor(
-    private service: GroupsService){ }
+    private service: GroupService){ }
   
   ngOnInit() : void {
     this.getGroups();

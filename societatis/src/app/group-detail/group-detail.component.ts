@@ -6,7 +6,7 @@ import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/takeUntil';
 
 import { Group } from '../_models';
-import { GroupsService } from '../_services';
+import { GroupService } from '../_services';
 
 @Component({
    templateUrl: './group-detail.component.html'
@@ -17,7 +17,7 @@ export class GroupDetailComponent implements OnInit, OnDestroy  {
   
   constructor(
     private route: ActivatedRoute,
-    private service: GroupsService
+    private service: GroupService
   ) { }
   
   ngOnInit() : void {
