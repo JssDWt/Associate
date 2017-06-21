@@ -1,0 +1,14 @@
+<div>
+  <div class="float-right">
+    <a class="btn btn-info" [routerLink]="['/new-group']">New</a>
+  </div>
+  <h2>Groups</h2>
+  
+  <div class="list-group">
+    <div *ngFor="let group of groups" class="list-item">
+      
+      <a  [routerLink]="['/groups', group.id]" class="profile-img-sm" ><img [src]="group.profileImage"  />  {{group.name}}</a>
+    </div>
+  </div>
+
+</div>

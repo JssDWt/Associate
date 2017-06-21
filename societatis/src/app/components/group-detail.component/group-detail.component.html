@@ -1,0 +1,29 @@
+<div>
+  <h1>{{group.name}}</h1>
+  <div class="profile-img">
+    <img [src]="group.profileImage" />
+  </div>
+  <div *ngIf="group.parentGroup">
+    <br />
+    <h2>Parent Group</h2>
+    <div class="list-item">
+      <a  [routerLink]="['/groups', group.parentGroup.id]" class="profile-img-sm" >
+        <img [src]="group.parentGroup.profileImage"  />  {{group.parentGroup.name}}
+      </a>
+    </div>
+  </div>
+  <div>
+    <br />
+    <div class="float-right">
+      <a class="btn btn-info" [routerLink]="['/new-group' ]" [queryParams]="{ parentId: group.id}">New subgroup</a>
+    </div>
+    <h2>Subgroups</h2>
+    <div class="list-group">
+      <div *ngFor="let subGroup of group.subGroups" class="list-item">
+        <a  [routerLink]="['/groups', subGroup.id]" class="profile-img-sm" >
+          <img [src]="subGroup.profileImage"/>  {{subGroup.name}}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

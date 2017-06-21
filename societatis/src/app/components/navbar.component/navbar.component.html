@@ -1,0 +1,13 @@
+<nav class="navbar navbar-toggleable-sm navbar-light bg-faded">
+  <button class="navbar-toggler navbar-toggler-right" type="button" (click)="isCollapsed = !isCollapsed"
+          aria-controls="collapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <a class="navbar-brand" routerLink="/">Societatis</a>
+  <div [ngbCollapse]="isCollapsed" class="collapse navbar-collapse" id="collapsingNavbar">
+    <div class="navbar-nav mr-auto">
+      <a class="nav-item nav-link" routerLink="/groups" routerLinkActive="active">Groups</a>
+      <a class="nav-item nav-link" routerLink="/users" routerLinkActive="active">Users</a>
+    </div>
+  </div>
+</nav>
