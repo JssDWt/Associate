@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
-import { Group } from '../../models/group';
+import { Group } from '../_models/group';
 
 @Injectable()
 export class GroupsService {

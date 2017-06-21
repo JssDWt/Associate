@@ -2,8 +2,8 @@ import { Component, ViewChild, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
-import { Group } from '../../models/group';
-import { GroupsService } from '../../services/groups.service/groups.service';
+import { Group } from '../_models/group';
+import { GroupsService } from '../_services/groups.service';
 
 @Component({
   templateUrl: './new-group.component.html'

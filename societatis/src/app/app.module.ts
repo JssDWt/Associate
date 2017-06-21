@@ -5,12 +5,12 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-import { AppComponent } from './components/app.component/app.component';
-import { NavbarComponent } from './components/navbar.component/navbar.component';
-import { GroupsComponent } from './components/groups.component/groups.component';
-import { GroupDetailComponent } from './components/group-detail.component/group-detail.component';
-import { NewGroupComponent } from './components/new-group.component/new-group.component';
-import { GroupsService } from './services/groups.service/groups.service';
+import { AppComponent } from './app.component';
+import { NavbarComponent } from './navbar/navbar.component';
+import { GroupsComponent } from './groups/groups.component';
+import { GroupDetailComponent } from './group-detail/group-detail.component';
+import { NewGroupComponent } from './new-group/new-group.component';
+import { GroupsService } from './_services/groups.service';
 
 const appRoutes: Routes = [
   { path: 'groups', component: GroupsComponent },

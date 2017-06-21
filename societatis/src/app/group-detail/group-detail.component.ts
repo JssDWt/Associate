@@ -5,8 +5,8 @@ import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/takeUntil';
 
-import { Group } from '../../models/group';
-import { GroupsService } from '../../services/groups.service/groups.service';
+import { Group } from '../_models/group';
+import { GroupsService } from '../_services/groups.service';
 
 @Component({
    templateUrl: './group-detail.component.html'
