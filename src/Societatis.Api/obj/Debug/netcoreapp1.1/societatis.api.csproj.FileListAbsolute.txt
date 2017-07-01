@@ -1,0 +1,4 @@
+c:\Users\jesse\Documents\VSCode projects\societatis\societatis.api\bin\Debug\netcoreapp1.1\societatis.api.deps.json
+c:\Users\jesse\Documents\VSCode projects\societatis\societatis.api\bin\Debug\netcoreapp1.1\societatis.api.runtimeconfig.json
+c:\Users\jesse\Documents\VSCode projects\societatis\societatis.api\bin\Debug\netcoreapp1.1\societatis.api.runtimeconfig.dev.json
+c:\Users\jesse\Documents\VSCode projects\societatis\societatis.api\obj\Debug\netcoreapp1.1\societatis.api.AssemblyInfo.cs
