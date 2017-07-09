@@ -3708,16 +3708,16 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj",
+      "projectUniqueName": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj",
       "projectName": "Societatis.Misc",
-      "projectPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj",
-      "outputPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\obj\\",
+      "projectPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj",
+      "outputPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netstandard1.4"
       ],
       "files": {
-        "lib/netstandard1.4/Societatis.Misc.dll": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\bin\\placeholder\\netstandard1.4\\Societatis.Misc.dll"
+        "lib/netstandard1.4/Societatis.Misc.dll": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\bin\\placeholder\\netstandard1.4\\Societatis.Misc.dll"
       },
       "frameworks": {
         "netstandard1.4": {

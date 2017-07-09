@@ -9621,25 +9621,25 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\Societatis.Api.csproj",
+      "projectUniqueName": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\Societatis.Api.csproj",
       "projectName": "Societatis.Api",
-      "projectPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\Societatis.Api.csproj",
-      "outputPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\obj\\",
+      "projectPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\Societatis.Api.csproj",
+      "outputPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netcoreapp1.1"
       ],
       "files": {
-        "lib/netcoreapp1.1/Societatis.Api.dll": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\bin\\placeholder\\netcoreapp1.1\\Societatis.Api.dll"
+        "lib/netcoreapp1.1/Societatis.Api.dll": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Api\\bin\\placeholder\\netcoreapp1.1\\Societatis.Api.dll"
       },
       "frameworks": {
         "netcoreapp1.1": {
           "projectReferences": {
-            "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj": {
-              "projectPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj"
+            "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj": {
+              "projectPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj"
             },
-            "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj": {
-              "projectPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj"
+            "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj": {
+              "projectPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj"
             }
           }
         }

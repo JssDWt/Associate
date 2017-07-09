@@ -4498,22 +4498,22 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj",
+      "projectUniqueName": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj",
       "projectName": "Societatis.HAL",
-      "projectPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj",
-      "outputPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\obj\\",
+      "projectPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\Societatis.HAL.csproj",
+      "outputPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netstandard1.4"
       ],
       "files": {
-        "lib/netstandard1.4/Societatis.HAL.dll": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\bin\\placeholder\\netstandard1.4\\Societatis.HAL.dll"
+        "lib/netstandard1.4/Societatis.HAL.dll": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.HAL\\bin\\placeholder\\netstandard1.4\\Societatis.HAL.dll"
       },
       "frameworks": {
         "netstandard1.4": {
           "projectReferences": {
-            "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj": {
-              "projectPath": "c:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj"
+            "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj": {
+              "projectPath": "C:\\Users\\jesse\\Documents\\VSCode projects\\societatis\\src\\Societatis.Misc\\Societatis.Misc.csproj"
             }
           }
         }

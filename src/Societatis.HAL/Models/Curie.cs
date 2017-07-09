@@ -27,5 +27,29 @@ namespace Societatis.HAL
                 }
             }
         }
+
+        public static bool IsCurie(ILink link)
+        {
+            link.ThrowIfNull(nameof(link));
+            bool result;
+
+            if (link is Curie)
+            {
+                result = true;
+            }
+            // TODO: Improve this method to use the curie specification
+            else if (link.Templated
+                && link.Name != null
+                && link.HRef.ToString().Contains("{rel}"))
+            {
+                result = true;
+            }
+            else
+            {
+                result = false;
+            }
+
+            return result;
+        }
     }
 }

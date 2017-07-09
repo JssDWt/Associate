@@ -1,262 +1,179 @@
 namespace Societatis.HAL
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using Societatis.Misc;
 
-    public class RelationCollection : IDictionary<string, IEnumerable<ILink>>
+    public abstract class RelationCollection<T> : IRelationCollection<T> where T: class
     {
-        private CuriesCollection curies = new CuriesCollection();
-        private Dictionary<string, List<ILink>> links = new Dictionary<string, List<ILink>>();
+        private ICollection<string> singleRelations = new List<string>() { "self" };
+        private Dictionary<string, List<T>> relations = new Dictionary<string, List<T>>();
 
-        public int Count
+        public virtual int RelationCount
+        {
+            get => this.relations.Count;
+        }
+
+        public virtual int Count
+        {
+            get => this.relations.Values
+                                 .Select(rel => rel.Count)
+                                 .Sum();
+        }
+
+        public virtual IEnumerable<T> this[string rel]
+        {
+            get => this.Get(rel);
+            set => this.Set(rel, value);
+        }
+
+        public virtual IEnumerable<string> Relations
         {
             get
             {
-                return this.links.Count;
+                return this.relations.Keys.AsEnumerable();
             }
         }
 
-        public bool IsReadOnly
+        public virtual ICollection<string> SingleRelations
         {
             get
             {
-                return false;
+                return this.singleRelations;
             }
-        }
 
-        public IEnumerable<ILink> this[string rel]
-        {
-            get
-            {
-                rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-                List<ILink> result = this.Get(rel);
-                // TODO: Make sure you cannot cast back to list
-                if (result == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    return result.AsReadOnly();
-                }
-            }
-            set
-            {
-                this.Replace(rel, value);
-            }
-        }
-
-        public ICollection<string> Keys
-        {
-            get
-            {
-                // TODO: Make sure you cannot manipulate the internal keys with this collection.
-                return this.links.Keys;
-            }
-        }
-
-        public ICollection<string> Relations
-        {
-            get
-            {
-                return this.Keys;
-            }
-        }
-
-        public IEnumerable<ILink> AllLinks
-        {
-            get
-            {
-                return this.links.Values.SelectMany(link => link);
-            }
-        }
-
-        public ICollection<IEnumerable<ILink>> Values
-        {
-            get
-            {
-                // TODO: Same as keys.
-                return this.links.Values.Select(l => l.AsEnumerable()).ToList();
-            }
-        }
-
-        public ILink Self
-        {
-            get
-            {
-                var selfLinks = this.Get("self");
-                ILink result = null;
-                if (selfLinks != null)
-                {
-                    result = selfLinks.SingleOrDefault();
-                }
-
-                return result;
-            }
-            set
+            protected set
             {
                 value.ThrowIfNull(nameof(value));
-                this.Replace("self", new ILink[] { value });
+                this.singleRelations = value;
             }
         }
 
-        public CuriesCollection Curies
+        public virtual IEnumerable<T> All
         {
             get
             {
-                return this.curies;
+                return this.relations.Values.SelectMany(item => item);
             }
         }
 
-        private List<ILink> Get(string rel)
-        {
-            List<ILink> result = null;
-            if (this.links.ContainsKey(rel))
-            {
-                result = this.links[rel];
-            }
-
-            return result;
-        }
-        public void Add(KeyValuePair<string, IEnumerable<ILink>> item)
-        {
-            this.Add(item.Key, item.Value);
-        }
-
-        public void Add(string rel, IEnumerable<ILink> links)
+        public virtual void Add(string rel, IEnumerable<T> items)
         {
             // NOTE: rel is checked for null in the Add method below.
-            links.ThrowIfNull(nameof(links));
-            foreach (ILink link in links.Where(l => l != null))
+            items.ThrowIfNull(nameof(items));
+            foreach (T item in items.Where(i => i != null))
             {
-                this.Add(rel, link);
+                this.Add(rel, item);
             }
         }
 
-        public void Add(string rel, ILink link)
+        public virtual void Add(string rel, T item)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            link.ThrowIfNull(nameof(link));
+            item.ThrowIfNull(nameof(item));
 
-            // NOTE: Non-unique links are allowed. Silly, but allowed.
-            // TODO: Verify the link is valid.
-            // TODO: Verify the rel matches the link's rel.
-            // TODO: throw on multiple self links??
-            // TODO: if the rel refers to a curie, make sure the curie exists
-            // TODO: if the Link is a curie, make sure it does not yet exist.
-
-            switch (rel)
+            if (this.relations.ContainsKey(rel))
             {
-                case Curie.Relation:
-                    var curie = link as Curie;
-                    if (curie == null) 
-                    {
-                        throw new InvalidOperationException("Relation implies that link is a curie, but cannot cast link to a curie.");
-                    }
-                    
-                    this.curies.Add(curie);
-                    break;
-                default:
-                    if (!this.links.ContainsKey(rel))
-                    {
-                        this.links.Add(rel, new List<ILink>());
-                    }
-
-                    this.links[rel].Add(link);
-                    break;
+                // This means there is already an item in this relation. Throw if only a single item may occur.
+                if(this.SingleRelations.Contains(rel))
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot add relation item. An item in this relation already exists and multiple items in this relation are not allowed, because the relation occurs in {nameof(this.SingleRelations)}.");
+                }
             }
-        }
-        public void Clear()
-        {
-            // TODO: Also clear selflink and curies??
-            this.links.Clear();
+            else 
+            {
+                // The relation does not yet exist. Add it.
+                this.relations.Add(rel, new List<T>());
+            }
+
+            this.relations[rel].Add(item);
         }
 
-        public bool Contains(KeyValuePair<string, IEnumerable<ILink>> item)
+        public virtual void Clear()
         {
-            throw new NotImplementedException();
+            this.relations.Clear();
         }
 
-        public bool Contains(string rel, ILink link)
+        public virtual bool Contains(string rel)
+        {
+            return this.relations.ContainsKey(rel);
+        }
+
+        public virtual bool Contains(string rel, T item)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            link.ThrowIfNull(nameof(link));
+            item.ThrowIfNull(nameof(item));
 
             bool result = false;
-            if (this.links.ContainsKey(rel))
+            if (this.Contains(rel))
             {
-                result = this.links[rel].Contains(link);
+                result = this.relations[rel].Contains(item);
             }
 
             return result;
         }
 
-        public bool ContainsKey(string rel)
+        public virtual bool Contains(T item)
         {
-            return this.links.ContainsKey(rel);
+            return this.Relations.Any(rel => this.Contains(rel, item));
         }
 
-        public IEnumerator<KeyValuePair<string, IEnumerable<ILink>>> GetEnumerator()
+        public IEnumerable<T> Get(string rel)
         {
-            foreach (var relation in this.links)
-            {
-                yield return new KeyValuePair<string, IEnumerable<ILink>>(relation.Key, relation.Value.AsEnumerable());
-            }
+            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
+            var result = this.Get(rel);
+
+            // TODO: Make sure you cannot cast back to list
+            return result == null ? result : result.AsEnumerable();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public virtual bool IsSingleRelation(string relation)
         {
-            return this.GetEnumerator();
+            relation.ThrowIfNullOrWhiteSpace(nameof(relation));
+            return this.SingleRelations.Contains(relation);
         }
 
-        public bool Remove(KeyValuePair<string, IEnumerable<ILink>> item)
+        public virtual void Set(string rel, IEnumerable<T> items)
         {
-            return this.Remove(item.Key);
+            this.Replace(rel, items);
         }
 
-        public bool Remove(string rel)
+        public virtual void Set(string rel, T item)
+        {
+            this.Replace(rel, item);
+        }
+
+        public virtual bool Remove(string rel)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
 
             bool removed = false;
-            if (this.links.ContainsKey(rel))
+            if (this.relations.ContainsKey(rel))
             {
-                removed = this.links.Remove(rel);
+                removed = this.relations.Remove(rel);
             }
 
             return removed;
         }
 
-        public bool TryGetValue(string rel, out IEnumerable<ILink> links)
-        {
-            bool success = false;
-            links = null;
-            List<ILink> innerLinks;
-
-            success = this.links.TryGetValue(rel, out innerLinks);
-            if (success)
-            {
-                links = innerLinks.AsEnumerable();
-            }
-
-            return success;
-        }
-
-        public void Replace(string rel, IEnumerable<ILink> links)
+        public virtual void Replace(string rel, IEnumerable<T> items)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            links.ThrowIfNull(nameof(links));
+            items.ThrowIfNull(nameof(items));
 
             this.Remove(rel);
-            this.Add(rel, links);
+            this.Add(rel, items);
         }
 
-        public void CopyTo(KeyValuePair<string, IEnumerable<ILink>>[] array, int arrayIndex)
+        public virtual void Replace(string rel, T item)
         {
-            throw new NotImplementedException();
+            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
+            item.ThrowIfNull(nameof(item));
+
+            this.Remove(rel);
+            this.Add(rel, item);
         }
     }
 }
