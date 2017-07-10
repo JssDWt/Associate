@@ -123,7 +123,12 @@ namespace Societatis.HAL
         public IEnumerable<T> Get(string rel)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            var result = this.Get(rel);
+
+            IEnumerable<T> result = null;
+            if (this.Contains(rel))
+            {
+                result = this.relations[rel];
+            }
 
             // TODO: Make sure you cannot cast back to list
             return result == null ? result : result.AsEnumerable();
@@ -137,12 +142,20 @@ namespace Societatis.HAL
 
         public virtual void Set(string rel, IEnumerable<T> items)
         {
-            this.Replace(rel, items);
+            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
+            items.ThrowIfNull(nameof(items));
+
+            this.Remove(rel);
+            this.Add(rel, items);
         }
 
         public virtual void Set(string rel, T item)
         {
-            this.Replace(rel, item);
+            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
+            item.ThrowIfNull(nameof(item));
+
+            this.Remove(rel);
+            this.Add(rel, item);
         }
 
         public virtual bool Remove(string rel)
@@ -156,24 +169,6 @@ namespace Societatis.HAL
             }
 
             return removed;
-        }
-
-        public virtual void Replace(string rel, IEnumerable<T> items)
-        {
-            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            items.ThrowIfNull(nameof(items));
-
-            this.Remove(rel);
-            this.Add(rel, items);
-        }
-
-        public virtual void Replace(string rel, T item)
-        {
-            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            item.ThrowIfNull(nameof(item));
-
-            this.Remove(rel);
-            this.Add(rel, item);
         }
     }
 }

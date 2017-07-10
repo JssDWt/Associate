@@ -18,7 +18,7 @@ namespace Societatis.HAL
             set
             {
                 value.ThrowIfNull(nameof(value));
-                this.Replace("self", value);
+                this.Set("self", value);
             }
         }
 

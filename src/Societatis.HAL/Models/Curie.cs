@@ -16,15 +16,18 @@ namespace Societatis.HAL
             this.Name = name;
         }
 
-        public override bool Templated
+        public override bool? Templated
         {
             get => base.Templated;
             set
             {
-                if (value == false)
+                if (!value.HasValue 
+                || value == false)
                 {
                     throw new InvalidOperationException("A curie is always templated.");
                 }
+
+                base.Templated = value;
             }
         }
 
@@ -38,7 +41,7 @@ namespace Societatis.HAL
                 result = true;
             }
             // TODO: Improve this method to use the curie specification
-            else if (link.Templated
+            else if (link.Templated == true
                 && link.Name != null
                 && link.HRef.ToString().Contains("{rel}"))
             {

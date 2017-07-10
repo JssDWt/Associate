@@ -23,8 +23,6 @@ namespace Societatis.HAL
         void Add(string rel, T item);
         bool Contains(string rel, T item);
         IEnumerable<T> Get(string rel);
-        void Replace(string rel, IEnumerable<T> items);
-        void Replace(string rel, T item);
         void Set(string rel, IEnumerable<T> items);
         void Set(string rel, T item);
     }

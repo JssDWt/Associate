@@ -30,7 +30,7 @@ namespace Societatis.HAL
         /// <summary>
         /// Gets or sets a value indicating whether the HRef property is a URI template.
         /// </summary>
-        public virtual bool Templated { get; set; }
+        public virtual bool? Templated { get; set; }
 
         /// <summary>
         /// Gets or sets a hint to indicate the media type expected when dereferencing the target resource by the HRef Uri.

@@ -33,7 +33,7 @@ namespace Societatis.HAL
             value.ThrowIfNull(nameof(value));
 
             var valueType = value.GetType();
-            bool isRelationCollection = valueType.GetGenericTypeDefinition() == typeof(RelationCollection<>);
+            bool isRelationCollection = value.IsInstanceOfGenericType(typeof(RelationCollection<>));
 
             if (!isRelationCollection)
             {
@@ -42,22 +42,14 @@ namespace Societatis.HAL
 
             var valueTypeInfo = valueType.GetTypeInfo();
             var jsonObject = new JObject();
-            IEnumerable<string> singles = (IEnumerable<string>)valueTypeInfo.GetDeclaredProperty(nameof(RelationCollection<dynamic>.SingleRelations))
+            IEnumerable<string> singles = (IEnumerable<string>) valueType.GetRuntimeProperty(nameof(RelationCollection<dynamic>.SingleRelations))
                                                        .GetMethod
                                                        .Invoke(value, null);
-            foreach (var relation in (IEnumerable<string>)valueTypeInfo.GetDeclaredProperty(nameof(RelationCollection<dynamic>.Relations))
+            foreach (var relation in (IEnumerable<string>) valueType.GetRuntimeProperty(nameof(RelationCollection<dynamic>.Relations))
                                                                        .GetMethod
                                                                        .Invoke(value, null))
             {
-                var getMethod = valueTypeInfo.GetDeclaredMethods(nameof(RelationCollection<dynamic>.Get))
-                             .Single(m => 
-                                {
-                                    var parameters = m.GetParameters();
-                                    return parameters.Length == 1
-                                        && parameters.First().ParameterType == typeof(string);
-                                });
-                
-                
+                var getMethod = valueType.GetRuntimeMethod(nameof(RelationCollection<dynamic>.Get), new Type[] { typeof(string) });              
                 var objects = (IEnumerable<object>)getMethod.Invoke(value, new object[] {relation});
 
                 JToken current = null;
