@@ -5,7 +5,7 @@ namespace Societatis.HAL
     using System.Linq;
     using Societatis.Misc;
 
-    public class ResourceCollection : RelationCollection<Resource>
+    public class ResourceCollection : RelationCollection<IResource>
     {
         private IEnumerable<string> allowedRelations;
 
@@ -13,13 +13,13 @@ namespace Societatis.HAL
         /// Initializes a new isntance of a <see cref="ResourceCollection" /> based on the specified links.
         /// </summary>
         /// <param name="links">The links that are the basis of this resource collection.</param>
-        public ResourceCollection(LinkCollection links)
+        public ResourceCollection(IRelationCollection links)
         {
             base.SingleRelations = links.SingleRelations;
             this.allowedRelations = links.Relations;
         }
 
-        public override void Add(string rel, Resource resource)
+        public override void Add(string rel, IResource resource)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
             resource.ThrowIfNull(nameof(resource));
