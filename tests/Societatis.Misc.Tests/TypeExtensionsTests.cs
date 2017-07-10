@@ -24,8 +24,8 @@ namespace Societatis.Misc.Tests
             }
 
             [Theory]
-            [InlineData(typeof(Dictionary<>))]
-            [InlineData(typeof(GenericList<>))]
+            [InlineData(typeof(Dictionary<,>))]
+            [InlineData(typeof(System.Collections.Concurrent.ConcurrentQueue<>))]
             public void IsInstanceOfGenericType_OtherType(Type type)
             {
                 //Given
@@ -38,13 +38,13 @@ namespace Societatis.Misc.Tests
 
             [Theory]
             [InlineData(typeof(object))]
-            [InlineData(typeof(Collection))]
+            [InlineData(typeof(System.Xml.XmlReader))]
             [InlineData(typeof(string))]
-            [InlineData(typeof(object))]
-            public void IsInstanceOfGenericType_ThrowsIfNotGeneric()
+            [InlineData(typeof(System.Collections.ICollection))]
+            public void IsInstanceOfGenericType_ThrowsIfNotGeneric(Type type)
             {
                 var list = new List<string>();
-                var ex = Assert.Throws<ArgumentException>(() => list.IsInstanceOfGenericType(typeof(object)));
+                var ex = Assert.Throws<ArgumentException>(() => list.IsInstanceOfGenericType(type));
             }
         }
     }

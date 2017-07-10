@@ -1,12 +1,13 @@
-using System.Collections.Generic;
-using System.IO;
-
-public class Group : Resource
+namespace Societatis.Api.Models
 {
-    public long Id { get; set; }
-    public string Name { get; set; }
-    public Stream ProfileImage { get; set; }
-    public GroupLink ParentGroup { get; set; }
-    public ICollection<GroupLink> SubGroups { get; set; }
-    public ICollection<UserLink> Members { get; set; }
+    using System.Collections.Generic;
+    using System.IO;
+    using Societatis.HAL;
+
+    public class Group : Resource
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public Stream ProfileImage { get; set; }
+    }
 }

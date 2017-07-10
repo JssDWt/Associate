@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
-public class User : UserLink
+namespace Societatis.Api.Models
 {
-    public DateTime BirthDate { get; set; }
-    public ICollection<GroupLink> Groups { get; set; }
-}
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
 
-public class UserLink
-{
-    public long Id { get; set; }
-    public string Name { get; set; }
-    public Stream ProfileImage { get; set; }
+    public class User
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public DateTime BirthDate { get; set; }
+    }
 }

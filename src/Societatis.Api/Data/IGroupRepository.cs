@@ -1,10 +1,14 @@
-using System.Collections.Generic;
-
-public interface IGroupRepository
+namespace Societatis.Api.Data
 {
-    Group GetGroup(long id);
-    IEnumerable<GroupLink> GetGroups(long userId);
-    void AddGroup(Group group);
-    void AddGroup(Group group, long parentId);
-    void AddUserToGroup(long userId, long groupId);
+    using System.Collections.Generic;
+    using Societatis.Api.Models;
+
+    public interface IGroupRepository
+    {
+        Group GetGroup(long id);
+        IEnumerable<Group> GetGroups(long userId);
+        void AddGroup(Group group);
+        void AddGroup(Group group, long parentId);
+        void AddUserToGroup(long userId, long groupId);
+    }
 }

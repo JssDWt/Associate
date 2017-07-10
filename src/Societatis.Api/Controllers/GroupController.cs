@@ -1,11 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-
-namespace societatis.api.Controllers
+﻿namespace Societatis.Api.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Societatis.Api.Data;
+    using Societatis.Api.Models;
+    using Societatis.HAL;
+    using Societatis.Misc;
+
     [Route("api/[controller]")]
     public class GroupController : Controller
     {
@@ -26,6 +30,7 @@ namespace societatis.api.Controllers
         public IEnumerable<Group> Get()
         {
             var groups = this.repository.GetGroups(this.userId);
+            return groups;
         }
 
         // GET api/values/5
@@ -34,8 +39,9 @@ namespace societatis.api.Controllers
         public IActionResult Get(long id)
         {
             var group = this.repository.GetGroup(id);
-            var selfLink = new Link("self", new Uri(Url.Action("Get", "Groups", new {id = id}));
-            group.Links.Add(selfLink);
+            var selfLink = new Link(new Uri(Url.Action("Get", "Groups", new {id = id})));
+            group.Links.Set("self", selfLink);
+            return this.Ok(group);
         }
 
         // POST api/values
