@@ -1,8 +1,0 @@
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\bin\Debug\netstandard1.4\Societatis.HAL.deps.json
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\obj\Debug\netstandard1.4\Societatis.HAL.AssemblyInfo.cs
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\bin\Debug\netstandard1.4\Societatis.HAL.dll
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\bin\Debug\netstandard1.4\Societatis.HAL.pdb
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\bin\Debug\netstandard1.4\Societatis.Misc.dll
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\bin\Debug\netstandard1.4\Societatis.Misc.pdb
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\obj\Debug\netstandard1.4\Societatis.HAL.dll
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.HAL\obj\Debug\netstandard1.4\Societatis.HAL.pdb

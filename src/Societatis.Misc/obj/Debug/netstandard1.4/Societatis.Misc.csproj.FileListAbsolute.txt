@@ -1,6 +1,0 @@
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.Misc\bin\Debug\netstandard1.4\Societatis.Misc.deps.json
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.Misc\bin\Debug\netstandard1.4\Societatis.Misc.dll
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.Misc\bin\Debug\netstandard1.4\Societatis.Misc.pdb
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.Misc\obj\Debug\netstandard1.4\Societatis.Misc.AssemblyInfo.cs
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.Misc\obj\Debug\netstandard1.4\Societatis.Misc.dll
-C:\Users\jesse\Documents\VSCode projects\societatis\src\Societatis.Misc\obj\Debug\netstandard1.4\Societatis.Misc.pdb
