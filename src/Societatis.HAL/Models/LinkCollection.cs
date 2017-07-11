@@ -22,12 +22,12 @@ namespace Societatis.HAL
             }
         }
 
-        public IEnumerable<Curie> Curies
+        public IEnumerable<ILink> Curies
         {
             get
             {
                 var curies = this["curies"];
-                return curies == null ? new List<Curie>().AsEnumerable() : curies.Cast<Curie>();
+                return curies == null ? new List<ILink>().AsEnumerable() : curies.AsEnumerable();
             }
         }
 
