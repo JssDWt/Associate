@@ -98,6 +98,7 @@ namespace Societatis.HAL
 
         public virtual bool Contains(string rel)
         {
+            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
             return this.relations.ContainsKey(rel);
         }
 
@@ -117,6 +118,7 @@ namespace Societatis.HAL
 
         public virtual bool Contains(T item)
         {
+            item.ThrowIfNull(nameof(item));
             return this.Relations.Any(rel => this.Contains(rel, item));
         }
 
