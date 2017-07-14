@@ -3,6 +3,9 @@ namespace Societatis.Misc.Tests
     using System;
     using Xunit;
 
+    /// <summary>
+    /// Class containing tests for the <see cref="StringExtensions" /> class.
+    /// </summary>
     public class StringExtensionsTests
     {
         public class ThrowIfNullOrWhiteSpaceMethod

@@ -21,9 +21,9 @@ namespace Societatis.HAL
 
             var resource = (Resource)value;
             var jsonResource = JObject.FromObject(resource);
-            if (value.IsInstanceOfGenericType(typeof(Resource<>)))
+            if (value.GetType().IsOfGenericType(typeof(Resource<>)))
             {
-                var actualValue = value.GetType().GetTypeInfo().GetDeclaredProperty(nameof(Resource<dynamic>.Value)).GetMethod.Invoke(value, new object[0]);
+                var actualValue = value.GetType().GetTypeInfo().GetDeclaredProperty(nameof(Resource<dynamic>.Data)).GetMethod.Invoke(value, new object[0]);
                 var jsonValue = JObject.FromObject(actualValue);
                 foreach (var property in jsonValue.Properties())
                 {
@@ -31,14 +31,14 @@ namespace Societatis.HAL
                 }
             }
 
-            if (resource.Links.RelationCount == 0
-                && resource.Links.Count == 0)
+            if (resource.Links.Count == 0
+                && resource.Links.ItemCount == 0)
             {
                 jsonResource.Property("_links").Remove();
             }
             
-            if (resource.Embedded.RelationCount == 0 
-                && resource.Embedded.Count == 0)
+            if (resource.Embedded.Count == 0 
+                && resource.Embedded.ItemCount == 0)
             {
                 jsonResource.Property("_embedded").Remove();
             }

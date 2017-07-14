@@ -17,7 +17,6 @@ namespace Societatis.HAL.Tests
         public class CanConvertMethod
         {
             [Theory]
-            [InlineData(typeof(IRelationCollection))]
             [InlineData(typeof(IRelationCollection<object>))]
             [InlineData(typeof(IRelationCollection<>))]
             [InlineData(typeof(RelationCollection<>))]
@@ -62,8 +61,8 @@ namespace Societatis.HAL.Tests
                 
 
                 var typedResult = Assert.IsType<LinkCollection>(result);
-                Assert.Equal(3, typedResult.RelationCount);
                 Assert.Equal(3, typedResult.Count);
+                Assert.Equal(3, typedResult.ItemCount);
                 Assert.Equal(new string[] { "self", "next", "find" }, typedResult.Relations);
                 Assert.Equal(1, typedResult["self"].Count());
                 Assert.Equal(new Uri("/orders"), typedResult["self"].Single().HRef);

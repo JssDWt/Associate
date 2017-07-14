@@ -1,4 +1,4 @@
 {
-    "self": { "TestProperty": "TestValue1" },
+    "self": [{ "TestProperty": "TestValue1" }],
     "other": [{ "TestProperty": "TestValue2" }]
 }

@@ -54,7 +54,7 @@ namespace Societatis.HAL.Tests
             {
                 var expectedValue = new object();
                 var resource = new Resource<object>(expectedValue);
-                Assert.Equal(expectedValue, resource.Value);
+                Assert.Equal(expectedValue, resource.Data);
             }
         }
 
@@ -70,7 +70,7 @@ namespace Societatis.HAL.Tests
                 var expectedEmbedded = new ResourceCollection(expectedLinks);
                 
                 var resource = new Resource<object>(expectedValue, expectedLinks, expectedEmbedded);
-                Assert.Equal(expectedValue, resource.Value);
+                Assert.Equal(expectedValue, resource.Data);
                 Assert.Equal(expectedLinks, resource.Links);
                 Assert.Equal(expectedEmbedded, resource.Embedded);
             }
@@ -82,7 +82,7 @@ namespace Societatis.HAL.Tests
             public void ThrowsIfNull()
             {
                 var resource = new Resource<object>(new object());
-                Assert.Throws<ArgumentNullException>(() => resource.Value = null);
+                Assert.Throws<ArgumentNullException>(() => resource.Data = null);
             }
         }
     }

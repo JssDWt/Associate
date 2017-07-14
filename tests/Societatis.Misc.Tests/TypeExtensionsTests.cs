@@ -1,6 +1,7 @@
 namespace Societatis.Misc.Tests
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using Societatis.Misc;
     using Xunit;
@@ -13,7 +14,7 @@ namespace Societatis.Misc.Tests
             [InlineData(typeof(List<>))]
             [InlineData(typeof(ICollection<>))]
             [InlineData(typeof(IEnumerable<>))]
-            public void IsInstanceOfGenericType_List(Type type)
+            public void List_True(Type type)
             {
                 //Given
                 var list = new List<string>();
@@ -26,7 +27,7 @@ namespace Societatis.Misc.Tests
             [Theory]
             [InlineData(typeof(Dictionary<,>))]
             [InlineData(typeof(System.Collections.Concurrent.ConcurrentQueue<>))]
-            public void IsInstanceOfGenericType_OtherType(Type type)
+            public void OtherType_False(Type type)
             {
                 //Given
                 var list = new List<string>();
@@ -41,10 +42,38 @@ namespace Societatis.Misc.Tests
             [InlineData(typeof(System.Xml.XmlReader))]
             [InlineData(typeof(string))]
             [InlineData(typeof(System.Collections.ICollection))]
-            public void IsInstanceOfGenericType_ThrowsIfNotGeneric(Type type)
+            public void NotGeneric_False(Type type)
             {
                 var list = new List<string>();
-                var ex = Assert.Throws<ArgumentException>(() => list.IsInstanceOfGenericType(type));
+                bool result = list.IsInstanceOfGenericType(type);
+                Assert.False(result);
+            }
+        }
+
+        public class IsOfGenericTypeMethod
+        {
+            [Theory]
+            [InlineData(typeof(List<>), typeof(IEnumerable<>))]
+            [InlineData(typeof(List<>), typeof(ICollection<>))]
+            [InlineData(typeof(List<string>), typeof(IEnumerable<>))]
+            [InlineData(typeof(List<string>), typeof(IEnumerable<string>))]
+            [InlineData(typeof(ICollection<>), typeof(IEnumerable<>))]
+            public void ValidItems(Type toCompare, Type compareTo)
+            {
+                bool result = toCompare.IsOfGenericType(compareTo);
+                Assert.True(result);
+            }
+
+            [Theory]
+            [InlineData(typeof(List<>), null)]
+            [InlineData(null, typeof(ICollection<>))]
+            [InlineData(typeof(List<string>), typeof(IEnumerable<int>))]
+            [InlineData(typeof(List<string>), typeof(IList))]
+            [InlineData(typeof(IEnumerable<>), typeof(List<string>))]
+            public void InvalidItems(Type toCompare, Type compareTo)
+            {
+                bool result = toCompare.IsOfGenericType(compareTo);
+                Assert.False(result);
             }
         }
     }

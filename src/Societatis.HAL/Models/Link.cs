@@ -3,17 +3,26 @@ namespace Societatis.HAL
     using System;
     using Societatis.Misc;
     
+    /// <summary>
+    /// Class representing a link to a resource.
+    /// </summary>
     public class Link : ILink
     {
+        /// <summary>
+        /// Backing field for the HRef property.
+        /// </summary>
+        private Uri href;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Link" /> class.
+        /// </summary>
+        /// <param name="href">The location of the resource the link points at.</param>
         public Link(Uri href)
         {
             // NOTE: Argument validation is done in the setter of the property.
             this.HRef = href;
         }
 
-        private Uri href;
-
-        // TODO: Make sure this is either a Uri or a Uri template.
         /// <summary>
         /// Gets or sets the location of the resource the link points at.
         /// </summary>
