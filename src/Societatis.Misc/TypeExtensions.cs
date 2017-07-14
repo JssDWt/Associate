@@ -51,5 +51,36 @@ namespace Societatis.Misc {
             // True would have been returned if this was a match. Return false now.
             return false;
         }
+
+        public static Type[] GetGenericParameterTypes(this Type type, Type genericType)
+        {
+            if (type == null) return null;
+
+            var typeInfo = type.GetTypeInfo();
+
+            while (typeInfo != null)
+            {
+                if (typeInfo.IsGenericType &&
+                    typeInfo.GetGenericTypeDefinition() == genericType) 
+                {
+                    return typeInfo.GenericTypeArguments;
+                }
+
+                // Apparently this type does not match the generic type. Maybe one of its interfaces?
+                foreach (var interfees in typeInfo.ImplementedInterfaces) 
+                {
+                    var interfaceTypes = interfees.GetGenericParameterTypes(genericType);
+                    if (interfaceTypes != null)
+                    {
+                        return interfaceTypes;
+                    }
+                }
+
+                // Also the interfaces don't match the generic type. The base type maybe? (if it exists).
+                typeInfo = typeInfo.BaseType?.GetTypeInfo();
+            }
+
+            return null;
+        }
     }
 }

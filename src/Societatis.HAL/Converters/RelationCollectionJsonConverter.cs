@@ -50,7 +50,74 @@ namespace Societatis.HAL
         /// <returns>The object value.</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (!this.CanConvert(objectType))
+            {
+                throw new ArgumentException($"Cannot read as type '{objectType?.FullName ?? "[NULL]"}', because it is not a '{typeof(IRelationCollection<>).FullName}'");
+            }
+
+            reader.ThrowIfNull(nameof(reader));
+            serializer.ThrowIfNull(nameof(serializer));
+
+            Type[] parameterTypes = objectType.GetGenericParameterTypes(typeof(IRelationCollection<>));
+            if (parameterTypes == null
+                || parameterTypes.Length != 1)
+            {
+                throw new ArgumentException("The specified object type does not meet the constraints needed to deserialize it as a relationcollection.");
+            }
+
+            Type parameterType = parameterTypes.Single();
+            Type enumerableParameterType =  typeof(IEnumerable<>).MakeGenericType(parameterType);
+            while (reader.TokenType == JsonToken.None)
+            {
+                // Advance to something useful.
+                reader.Read();
+            }
+
+            // Expecting an object here.
+            if (reader.TokenType != JsonToken.StartObject)
+            {
+                throw new JsonSerializationException("Expected start object.");
+            }
+
+            var instance = Activator.CreateInstance(objectType);
+            ICollection<string> singleRelations = (ICollection<string>)typeof(IRelationCollection<>).GetRuntimeProperty(nameof(IRelationCollection.SingleRelations)).GetMethod.Invoke(instance, new object[0]);
+            var addMethod = typeof(IRelationCollection<>).GetRuntimeMethod(nameof(IRelationCollection<dynamic>.Add), new Type[] { typeof(string), parameterType });
+            var addMultipleMethod = typeof(IRelationCollection<>).GetRuntimeMethod(nameof(IRelationCollection<dynamic>.Add), new Type[] { typeof(string), enumerableParameterType });
+            int level = 1;
+            while (level > 0 && reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.StartObject:
+                        level++;
+                        break;
+                    case JsonToken.EndObject:
+                        level--;
+                        break;
+                    case JsonToken.PropertyName:
+                        if (level == 1)
+                        {
+                            string relation = (string)reader.Value;
+                            reader.Read();
+                            if (reader.TokenType == JsonToken.StartArray)
+                            {
+                                var items = serializer.Deserialize(reader, enumerableParameterType);
+                                addMultipleMethod.Invoke(instance, new object[] { relation, items });
+                            }
+                            else
+                            {
+                                var item = serializer.Deserialize(reader, parameterType);
+                                addMethod.Invoke(instance, new object[] {relation, item });
+                                singleRelations.Add(relation);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return instance;
         }
 
         /// <summary>
@@ -64,6 +131,7 @@ namespace Societatis.HAL
             if (value == null) return;
 
             writer.ThrowIfNull(nameof(writer));
+            serializer.ThrowIfNull(nameof(serializer));
 
             var valueType = value.GetType();
 
@@ -73,7 +141,6 @@ namespace Societatis.HAL
             }
 
             var valueTypeInfo = valueType.GetTypeInfo();
-            var jsonObject = new JObject();
 
             // Get single relations
             IEnumerable<string> singles = (IEnumerable<string>) valueType.GetRuntimeProperty(nameof(RelationCollection<dynamic>.SingleRelations))
@@ -84,6 +151,9 @@ namespace Societatis.HAL
             IEnumerable<string> relations = (IEnumerable<string>) valueType.GetRuntimeProperty(nameof(RelationCollection<dynamic>.Relations))
                                                                            .GetMethod
                                                                            .Invoke(value, null);
+            
+            writer.WriteStartObject();
+
             // Loop all relations
             foreach (var relation in relations)
             {
@@ -91,21 +161,19 @@ namespace Societatis.HAL
                 var getMethod = valueType.GetRuntimeMethod(nameof(RelationCollection<dynamic>.Get), new Type[] { typeof(string) });              
                 var items = (IEnumerable<object>)getMethod.Invoke(value, new object[] {relation});
 
-                JToken current = null;
+                writer.WritePropertyName(relation);
 
                 if (singles.Contains(relation))
                 {
-                    current = JToken.FromObject(items.FirstOrDefault());
+                    serializer.Serialize(writer, items.FirstOrDefault());
                 }
                 else
                 {
-                    current = JArray.FromObject(items);
+                    serializer.Serialize(writer, items);
                 }
-
-                jsonObject.Add(relation, current);
             }
 
-            jsonObject.WriteTo(writer);
+            writer.WriteEndObject();
         }
     }
 }
