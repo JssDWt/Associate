@@ -11,8 +11,9 @@ namespace Societatis.HAL
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
+            if (value == null) return;
+            
             writer.ThrowIfNull(nameof(writer));
-            value.ThrowIfNull(nameof(value));
 
             if (!this.CanConvert(value.GetType()))
             {
@@ -20,31 +21,50 @@ namespace Societatis.HAL
             }
 
             var resource = (Resource)value;
-            var jsonResource = JObject.FromObject(resource);
-            if (value.IsInstanceOfGenericType(typeof(Resource<>)))
+            object data = null;
+            Type dataType = null;
+            JsonObjectContract contract = null;
+            
+            if (value.GetType().IsOfGenericType(typeof(Resource<>))
             {
-                var actualValue = value.GetType().GetTypeInfo().GetDeclaredProperty(nameof(Resource<dynamic>.Value)).GetMethod.Invoke(value, new object[0]);
-                var jsonValue = JObject.FromObject(actualValue);
-                foreach (var property in jsonValue.Properties())
-                {
-                    jsonResource.Add(property.Name, property.Value);
-                }
+                // TODO: set data datatype and contract for a generic resource.
             }
-
-            if (resource.Links.RelationCount == 0
-                && resource.Links.Count == 0)
+            else
             {
-                jsonResource.Property("_links").Remove();
+                data = value;
+                dataType = value.GetType();
+                contract = serializer.ContractResolver.ResolveContract(dataType) as JsonObjectContract;
             }
             
-            if (resource.Embedded.RelationCount == 0 
-                && resource.Embedded.Count == 0)
+            if (contract == null)
             {
-                jsonResource.Property("_embedded").Remove();
+                throw new JsonSerializationException("Could not resolve contract for the value to serialize.");
             }
-
-            // TODO: Add embedded resources
-            jsonResource.WriteTo(writer);
+            
+            writer.WriteStartObject();
+            if (resource.Links != null && resource.Links.Count > 0)
+            {
+                writer.WritePropertyName("_links");
+                serializer.Serialize(writer, resource.Links);
+            }
+            
+            foreach (var property in contract.Properties)
+            {
+                if (property.ShouldSerialize(data))
+                {
+                    writer.WritePropertyName(property.PropertyName);
+                    serializer.Serialize(writer, dataType.GetProperty(property.UnderlyingName).GetMethod.Invoke(data, null);
+                }
+            }
+            
+            if (resource.Embedded != null && resource.Embedded.Count > 0)
+            {
+                writer.WritePropertyName("_embedded");
+                serializer.Serialize(writer, resource.Embedded);
+            }
+            
+            writer.WriteEndObject();
+            
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
