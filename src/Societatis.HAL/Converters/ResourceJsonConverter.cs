@@ -15,11 +15,6 @@ namespace Societatis.HAL
             
             writer.ThrowIfNull(nameof(writer));
             serializer.ThrowIfNull(nameof(serializer));
-            
-            if (!this.CanConvert(value.GetType()))
-            {
-                
-            }
 
             var resource = value as IResource;
             if (resource == null)
@@ -61,6 +56,7 @@ namespace Societatis.HAL
             
             foreach (var property in contract.Properties)
             {
+                // TODO: Verify this works for edge cases.
                 if (property.ShouldSerialize(data))
                 {
                     writer.WritePropertyName(property.PropertyName);
