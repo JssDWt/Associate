@@ -5,46 +5,69 @@ namespace Societatis.HAL
     using System.Reflection;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Serialization;
     using Societatis.Misc;
 
     public class ResourceJsonConverter : JsonConverter
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
+            if (value == null) return;
+            
             writer.ThrowIfNull(nameof(writer));
-            value.ThrowIfNull(nameof(value));
+            serializer.ThrowIfNull(nameof(serializer));
 
-            if (!this.CanConvert(value.GetType()))
+            var resource = value as IResource;
+            if (resource == null)
             {
-                throw new ArgumentException($"Cannot convert type {value.GetType().Name}.", nameof(value));
+                throw new ArgumentException($"Cannot convert type {value.GetType().FullName}, because it is not an {typeof(IResource).FullName}.", nameof(value));
             }
-
-            var resource = (Resource)value;
-            var jsonResource = JObject.FromObject(resource);
+            
+            object data = null;
+            
             if (value.GetType().IsOfGenericType(typeof(Resource<>)))
             {
-                var actualValue = value.GetType().GetTypeInfo().GetDeclaredProperty(nameof(Resource<dynamic>.Data)).GetMethod.Invoke(value, new object[0]);
-                var jsonValue = JObject.FromObject(actualValue);
-                foreach (var property in jsonValue.Properties())
+                // Data property of Resource<> cannot be null, so data is now never null.
+                data = typeof(Resource<>).GetTypeInfo().GetDeclaredProperty(nameof(Resource<dynamic>.Data)).GetValue(value);
+            }
+            else
+            {
+                data = value;
+            }
+            
+            Type dataType = data.GetType();
+            TypeInfo dataTypeInfo = dataType.GetTypeInfo();
+            JsonObjectContract contract = serializer.ContractResolver.ResolveContract(dataType) as JsonObjectContract;
+            if (contract == null)
+            {
+                throw new JsonSerializationException("Could not resolve contract for the value to serialize.");
+            }
+            
+            writer.WriteStartObject();
+            if (resource.Links != null && resource.Links.Count > 0)
+            {
+                writer.WritePropertyName("_links");
+                serializer.Serialize(writer, resource.Links);
+            }
+            
+            if (resource.Embedded != null && resource.Embedded.Count > 0)
+            {
+                writer.WritePropertyName("_embedded");
+                serializer.Serialize(writer, resource.Embedded);
+            }
+            
+            foreach (var property in contract.Properties)
+            {
+                // TODO: Verify this works for edge cases.
+                if (property.ShouldSerialize(data))
                 {
-                    jsonResource.Add(property.Name, property.Value);
+                    writer.WritePropertyName(property.PropertyName);
+                    var currentValue = dataType.GetRuntimeProperty(property.UnderlyingName).GetValue(data);
+                    serializer.Serialize(writer, currentValue);
                 }
             }
 
-            if (resource.Links.Count == 0
-                && resource.Links.ItemCount == 0)
-            {
-                jsonResource.Property("_links").Remove();
-            }
-            
-            if (resource.Embedded.Count == 0 
-                && resource.Embedded.ItemCount == 0)
-            {
-                jsonResource.Property("_embedded").Remove();
-            }
-
-            // TODO: Add embedded resources
-            jsonResource.WriteTo(writer);
+            writer.WriteEndObject();
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -59,8 +82,13 @@ namespace Societatis.HAL
 
         public override bool CanConvert(Type objectType)
         {
-            objectType.ThrowIfNull(nameof(objectType));
-            return typeof(Resource).GetTypeInfo().IsAssignableFrom(objectType.GetTypeInfo());
+            bool result = false;
+            if (objectType != null)
+            {
+                result = typeof(IResource).GetTypeInfo().IsAssignableFrom(objectType.GetTypeInfo());
+            }
+            
+            return result;
         }
     }
 }

@@ -56,9 +56,8 @@ namespace Societatis.HAL.Tests
                 using (var streamReader = File.OpenText(Path.Combine(this.TestDataPath, "LinkCollection_Simple.json")))
                 using (var reader = new JsonTextReader(streamReader))
                 {
-                    result = converter.ReadJson(reader, typeof(RelationCollection<ILink>), null, new JsonSerializer());
+                    result = converter.ReadJson(reader, typeof(RelationCollection<Link>), null, new JsonSerializer());
                 }
-                
 
                 var typedResult = Assert.IsType<LinkCollection>(result);
                 Assert.Equal(3, typedResult.Count);

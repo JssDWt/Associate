@@ -80,7 +80,7 @@ namespace Societatis.HAL
             }
 
             var instance = Activator.CreateInstance(objectType);
-            ICollection<string> singleRelations = (ICollection<string>)typeof(IRelationCollection<>).GetRuntimeProperty(nameof(IRelationCollection.SingleRelations)).GetMethod.Invoke(instance, new object[0]);
+            ICollection<string> singleRelations = (ICollection<string>)typeof(IRelationCollection).GetRuntimeProperty(nameof(IRelationCollection.SingleRelations)).GetValue(instance);
             var addMethod = typeof(IRelationCollection<>).GetRuntimeMethod(nameof(IRelationCollection<dynamic>.Add), new Type[] { typeof(string), parameterType });
             var addMultipleMethod = typeof(IRelationCollection<>).GetRuntimeMethod(nameof(IRelationCollection<dynamic>.Add), new Type[] { typeof(string), enumerableParameterType });
             int level = 1;
