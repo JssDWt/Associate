@@ -3,10 +3,10 @@ namespace Societatis.HAL
     using Newtonsoft.Json;
     public interface IResource
     {
-        [JsonProperty("_links")]
+        [JsonIgnore]
         IRelationCollection<ILink> Links { get; }
 
-        [JsonProperty("_embedded")]
+        [JsonIgnore]
         IRelationCollection<IResource> Embedded { get; }
     }
 }
