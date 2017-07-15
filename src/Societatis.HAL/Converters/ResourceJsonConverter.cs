@@ -14,28 +14,33 @@ namespace Societatis.HAL
             if (value == null) return;
             
             writer.ThrowIfNull(nameof(writer));
-
+            serializer.ThrowIfNull(nameof(serializer));
+            
             if (!this.CanConvert(value.GetType()))
             {
-                throw new ArgumentException($"Cannot convert type {value.GetType().Name}.", nameof(value));
+                
             }
 
-            var resource = (Resource)value;
+            var resource = value as IResource;
+            if (resource == null)
+            {
+                throw new ArgumentException($"Cannot convert type {value.GetType().FullName}, because it is not an {typeof(IResource).FullName}.", nameof(value));
+            }
+            
             object data = null;
-            Type dataType = null;
-            JsonObjectContract contract = null;
             
             if (value.GetType().IsOfGenericType(typeof(Resource<>))
             {
-                // TODO: set data datatype and contract for a generic resource.
+                // Data property of Resource<> cannot be null, so data is now never null.
+                data = typeof(Resource<>).GetProperty(nameof(Resource<dynamic>.Data)).GetValue(value);
             }
             else
             {
                 data = value;
-                dataType = value.GetType();
-                contract = serializer.ContractResolver.ResolveContract(dataType) as JsonObjectContract;
             }
             
+            Type dataType = data.GetType();
+            JsonObjectContract contract = serializer.ContractResolver.ResolveContract(dataType) as JsonObjectContract;
             if (contract == null)
             {
                 throw new JsonSerializationException("Could not resolve contract for the value to serialize.");
@@ -48,6 +53,12 @@ namespace Societatis.HAL
                 serializer.Serialize(writer, resource.Links);
             }
             
+            if (resource.Embedded != null && resource.Embedded.Count > 0)
+            {
+                writer.WritePropertyName("_embedded");
+                serializer.Serialize(writer, resource.Embedded);
+            }
+            
             foreach (var property in contract.Properties)
             {
                 if (property.ShouldSerialize(data))
@@ -56,15 +67,8 @@ namespace Societatis.HAL
                     serializer.Serialize(writer, dataType.GetProperty(property.UnderlyingName).GetMethod.Invoke(data, null);
                 }
             }
-            
-            if (resource.Embedded != null && resource.Embedded.Count > 0)
-            {
-                writer.WritePropertyName("_embedded");
-                serializer.Serialize(writer, resource.Embedded);
-            }
-            
+
             writer.WriteEndObject();
-            
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -79,8 +83,13 @@ namespace Societatis.HAL
 
         public override bool CanConvert(Type objectType)
         {
-            objectType.ThrowIfNull(nameof(objectType));
-            return typeof(Resource).GetTypeInfo().IsAssignableFrom(objectType.GetTypeInfo());
+            bool result = false;
+            if (objectType != null)
+            {
+                result = typeof(IResource).GetTypeInfo().IsAssignableFrom(objectType.GetTypeInfo());
+            }
+            
+            return result;
         }
     }
 }
