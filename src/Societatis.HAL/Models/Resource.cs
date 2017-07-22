@@ -9,6 +9,13 @@ namespace Societatis.HAL
     /// </summary>
     public abstract class Resource : IResource
     {
+        public const string LinksPropertyName = "_links";
+        public const string EmbeddedPropertyName = "_embedded";
+        public static readonly string[] ReservedProperties = new string[] { LinksPropertyName, EmbeddedPropertyName };
+
+        private IRelationCollection<ILink> links;
+        private IRelationCollection<IResource> embedded;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Resource" /> class.
         /// </summary>
@@ -26,9 +33,6 @@ namespace Societatis.HAL
         /// <param name="embedded">The embedded resources for the current resource.</param>
         protected Resource(IRelationCollection<ILink> links, IRelationCollection<IResource> embedded)
         {
-            links.ThrowIfNull(nameof(links));
-            embedded.ThrowIfNull(nameof(embedded));
-
             this.Links = links;
             this.Embedded = embedded;
         }
@@ -36,15 +40,44 @@ namespace Societatis.HAL
         /// <summary>
         /// Gets the links for the current resource. Containing related links to other resources.
         /// </summary>
-        [JsonConverter(typeof(RelationCollectionJsonConverter))]
-        public IRelationCollection<ILink> Links { get; }
+        
+        [JsonConverter(typeof(RelationCollectionJsonConverter), typeof(LinkCollection))]
+        [JsonProperty(LinksPropertyName)]
+        public IRelationCollection<ILink> Links 
+        { 
+            get => this.links;
+            set
+            {
+                value.ThrowIfNull(nameof(Links));
+                this.links = value;
+            }
+        }
 
         /// <summary>
         /// Gets embedded resource, accompanied by the current resource, as a full, partial, 
         /// or inconsistent version of the representations served from the target Uri.
         /// </summary>
-        [JsonConverter(typeof(RelationCollectionJsonConverter))]
-        public IRelationCollection<IResource> Embedded { get; }
+        [JsonConverter(typeof(RelationCollectionJsonConverter), typeof(ResourceCollection))]
+        [JsonProperty(EmbeddedPropertyName)]
+        public IRelationCollection<IResource> Embedded 
+        { 
+            get => this.embedded;
+            set
+            {
+                value.ThrowIfNull(nameof(Embedded));
+                this.embedded = value;
+            }
+        }
+
+        public virtual bool ShouldSerializeLinks()
+        {
+            return this.Links != null && this.Links.Count > 0;
+        }
+
+        public virtual bool ShouldSerializeEmbedded()
+        {
+            return this.Embedded != null && this.Embedded.Count > 0;
+        }
     }
 
     /// <summary>

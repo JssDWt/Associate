@@ -6,6 +6,7 @@ namespace Societatis.HAL
     using System.Reflection;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Serialization;
     using Societatis.Misc;
 
     /// <summary>
@@ -13,13 +14,19 @@ namespace Societatis.HAL
     /// </summary>
     public class RelationCollectionJsonConverter : JsonConverter
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RelationCollectionJsonConverter" /> class.
-        /// </summary>
+        private Type concreteType;
+        private static readonly PropertyInfo SingleRelationsProperty = typeof(IRelationCollection).GetRuntimeProperty(nameof(IRelationCollection.SingleRelations));
+
+        private const string AddMethodName = nameof(IRelationCollection<dynamic>.Add);
+
         public RelationCollectionJsonConverter()
-            : base()
         {
             
+        }
+
+        public RelationCollectionJsonConverter(Type concreteType)
+        {
+            this.concreteType = concreteType;
         }
 
         /// <summary>
@@ -34,6 +41,11 @@ namespace Societatis.HAL
             if (objectType != null)
             {
                 result = objectType.IsOfGenericType(typeof(IRelationCollection<>));
+
+                if (result == true && this.concreteType != null)
+                {
+                    result = objectType.GetTypeInfo().IsAssignableFrom(this.concreteType.GetTypeInfo());
+                }
             }
 
             return result;
@@ -58,6 +70,8 @@ namespace Societatis.HAL
             reader.ThrowIfNull(nameof(reader));
             serializer.ThrowIfNull(nameof(serializer));
 
+            AdvanceToData(reader);
+
             Type[] parameterTypes = objectType.GetGenericParameterTypes(typeof(IRelationCollection<>));
             if (parameterTypes == null
                 || parameterTypes.Length != 1)
@@ -66,23 +80,23 @@ namespace Societatis.HAL
             }
 
             Type parameterType = parameterTypes.Single();
-            Type enumerableParameterType =  typeof(IEnumerable<>).MakeGenericType(parameterType);
-            while (reader.TokenType == JsonToken.None)
-            {
-                // Advance to something useful.
-                reader.Read();
-            }
+            Type enumerableParameterType = typeof(IEnumerable<>).MakeGenericType(parameterType);
 
-            // Expecting an object here.
-            if (reader.TokenType != JsonToken.StartObject)
+            JsonContract objectContract = null;
+            if (this.concreteType == null)
             {
-                throw new JsonSerializationException("Expected start object.");
+                objectContract = serializer.ContractResolver.ResolveContract(objectType);
             }
+            else
+            {
+                objectContract = serializer.ContractResolver.ResolveContract(this.concreteType);
+            }
+            
+            object instance = objectContract.DefaultCreator();
 
-            var instance = Activator.CreateInstance(objectType);
-            ICollection<string> singleRelations = (ICollection<string>)typeof(IRelationCollection).GetRuntimeProperty(nameof(IRelationCollection.SingleRelations)).GetValue(instance);
-            var addMethod = typeof(IRelationCollection<>).GetRuntimeMethod(nameof(IRelationCollection<dynamic>.Add), new Type[] { typeof(string), parameterType });
-            var addMultipleMethod = typeof(IRelationCollection<>).GetRuntimeMethod(nameof(IRelationCollection<dynamic>.Add), new Type[] { typeof(string), enumerableParameterType });
+            var singleRelations = (ICollection<string>)SingleRelationsProperty.GetValue(instance);
+            var addMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), parameterType });
+            var addMultipleMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), enumerableParameterType });
             int level = 1;
             while (level > 0 && reader.Read())
             {
@@ -107,7 +121,7 @@ namespace Societatis.HAL
                             else
                             {
                                 var item = serializer.Deserialize(reader, parameterType);
-                                addMethod.Invoke(instance, new object[] {relation, item });
+                                addMethod.Invoke(instance, new object[] { relation, item });
                                 singleRelations.Add(relation);
                             }
                         }
@@ -174,6 +188,21 @@ namespace Societatis.HAL
             }
 
             writer.WriteEndObject();
+        }
+
+        /// <summary>
+        /// Advances the <see cref="JsonReader" /> to the start of the <see cref="IRelationCollection" /> object.
+        /// </summary>
+        /// <param name="reader">The reader to advance.</param>
+        private static void AdvanceToData(JsonReader reader)
+        {
+            while (reader.TokenType != JsonToken.StartObject)
+            {
+                if (!reader.Read())
+                {
+                    throw new JsonSerializationException("Expected start object.");
+                }
+            }
         }
     }
 }

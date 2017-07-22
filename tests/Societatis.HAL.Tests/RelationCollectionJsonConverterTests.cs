@@ -1,6 +1,7 @@
 namespace Societatis.HAL.Tests
 {
     using System;
+    using System.Collections;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -59,14 +60,14 @@ namespace Societatis.HAL.Tests
                     result = converter.ReadJson(reader, typeof(RelationCollection<Link>), null, new JsonSerializer());
                 }
 
-                var typedResult = Assert.IsType<LinkCollection>(result);
+                var typedResult = Assert.IsType<RelationCollection<Link>>(result);
                 Assert.Equal(3, typedResult.Count);
                 Assert.Equal(3, typedResult.ItemCount);
                 Assert.Equal(new string[] { "self", "next", "find" }, typedResult.Relations);
+                Assert.Equal(new string[] { "self", "next", "find" }, typedResult.SingleRelations);
                 Assert.Equal(1, typedResult["self"].Count());
-                Assert.Equal(new Uri("/orders"), typedResult["self"].Single().HRef);
+                Assert.Equal(new Uri("/orders", UriKind.Relative), typedResult["self"].Single().HRef);
             }
-
         }
 
         public class WriteJsonMethod: RelationCollectionJsonConverterTests

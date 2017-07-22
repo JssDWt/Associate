@@ -11,17 +11,48 @@ namespace Societatis.HAL
     public class RelationCollection<T> : IRelationCollection<T>
     {
         /// <summary>
-        /// Backing field for the SingleRelations property.
-        /// </summary>
-        private ICollection<string> singleRelations = new HashSet<string>();
-
-        /// <summary>
         /// Field containing all relations and their items.
         /// </summary>
-        private Dictionary<string, List<T>> relations = new Dictionary<string, List<T>>();
+        private Dictionary<string, ICollection<T>> relations = new Dictionary<string, ICollection<T>>();
 
         /// <summary>
-        /// Gets the number of distinct relations.
+        /// Backing field for the DefaultValueProvider property.
+        /// </summary>
+        private Func<ICollection<T>> defaultValueProvider;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RelationCollection" /> class.
+        /// </summary>
+        public RelationCollection() // TODO: Make this something other than a list...
+            : this(() => new List<T>()) 
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RelationCollection" /> class,
+        /// using the specified valueprovider as a default value provider for the relation values.
+        /// </summary>
+        /// <param name="defaultValueProvider">Function returning a collection for relation values.</param>
+        public RelationCollection(Func<ICollection<T>> defaultValueProvider)
+        {
+            this.DefaultValueProvider = defaultValueProvider;
+        }
+
+        /// <summary>
+        /// Gets or sets a function providing the default collection when a new relation is requested.
+        /// </summary>
+        public Func<ICollection<T>> DefaultValueProvider 
+        { 
+            get => this.defaultValueProvider; 
+            set
+            {
+                value.ThrowIfNull(nameof(value));
+                this.defaultValueProvider = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of relations in the collection.
         /// </summary>
         public virtual int Count
         {
@@ -29,23 +60,32 @@ namespace Societatis.HAL
         }
 
         /// <summary>
-        /// Gets the total number of items.
-        /// </summary>
-        public virtual int ItemCount
-        {
-            get => this.relations.Values
-                                 .Select(rel => rel.Count)
-                                 .Sum();
-        }
-
-        /// <summary>
-        /// Gets or sets the items in the specified relation.
+        /// Gets or sets the item collection of the specified relation.
+        /// The value returned is never null. If a relation is requested that is not currently present in the collection,
+        /// it is added with the <see cref="DefaultValueProvider" /> and returned.
         /// </summary>
         /// <param name="rel">The relation to get items for.</param>
-        /// <returns>All items in the specified relation.</returns>
-        public virtual IEnumerable<T> this[string rel]
+        /// <returns>Collection of items in the specified relation.</returns>
+        /// <example> 
+        /// This sample shows how to add items to a collection. Below code will not throw an exception when the relation does not exist.
+        /// <code>
+        /// var relations = new RelationCollection<object>();
+        /// relations["myRelation"].Add(new object()); // does not throw.
+        /// </code>
+        /// </example>
+        public virtual ICollection<T> this[string rel]
         {
-            get => this.Get(rel);
+            get
+            {
+                ICollection<T> result = this.Get(rel);
+                if (result == null)
+                {
+                    result = this.DefaultValueProvider();
+                    this.Set(rel, result);
+                }
+
+                return result;
+            }
             set => this.Set(rel, value);
         }
 
@@ -64,43 +104,11 @@ namespace Societatis.HAL
         }
 
         /// <summary>
-        /// Gets the collection of relations that should be treated as single relations.
-        /// A relation that occurs in this collection can only contain a single item.
-        /// </summary>
-        public virtual ICollection<string> SingleRelations
-        {
-            get
-            {
-                return this.singleRelations;
-            }
-
-            protected set
-            {
-                value.ThrowIfNull(nameof(value));
-                this.singleRelations = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets all items in the collection, regardless of the relation they are in.
-        /// </summary>
-        public virtual IEnumerable<T> All
-        {
-            get
-            {
-                return this.relations.Values.SelectMany(item => item);
-            }
-        }
-
-        /// <summary>
         /// Adds all the specified items to the specified relation.
         /// </summary>
         /// <param name="rel">The relation to add the items to.</param>
         /// <param name="items">The items to add to the relation.</param>
         /// <exception cref="ArgumentNullException">Thrown when items is null</exception>
-        /// <exception cref="ArgumentException">Thrown when the specified rel is null or whitespace.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when only a single item is allowed in the specified relation
-        /// and an item in the relation already exists.</exception>
         public virtual void Add(string rel, IEnumerable<T> items)
         {
             // NOTE: rel is checked for null in the Add method below.
@@ -116,33 +124,9 @@ namespace Societatis.HAL
         /// </summary>
         /// <param name="rel">The relation to add the item to.</param>
         /// <param name="item">The item to add to the relation.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the specified item is null</exception>
-        /// <exception cref="ArgumentException">Thrown when the specified rel is null or whitespace.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when only a single item is allowed in the specified relation
-        /// and an item in the relation already exists.</exception>
         public virtual void Add(string rel, T item)
         {
-            rel.ThrowIfNullOrWhiteSpace(nameof(rel));
-            item.ThrowIfNull(nameof(item));
-
-            if (this.relations.ContainsKey(rel))
-            {
-                // This means there is already an item in this relation. Throw if only a single item may occur.
-                if(this.SingleRelations.Contains(rel))
-                {
-                    throw new InvalidOperationException(
-                        "Cannot add relation item. An item in this relation already exists " +
-                        "and multiple items in this relation are not allowed, because the relation occurs " +
-                        $" in {nameof(this.SingleRelations)}.");
-                }
-            }
-            else 
-            {
-                // The relation does not yet exist. Add it.
-                this.relations.Add(rel, new List<T>());
-            }
-
-            this.relations[rel].Add(item);
+            this[rel].Add(item);
         }
 
         /// <summary>
@@ -171,79 +155,17 @@ namespace Societatis.HAL
         }
 
         /// <summary>
-        /// Gets a value indicating whether the specified relation contains the specified item.
-        /// </summary>
-        /// <param name="rel">The relation that would contain the item.</param>
-        /// <param name="item">The item that would be in the relation.</param>
-        /// <returns>A value indicating whether the item is in the relation.</returns>
-        public virtual bool Contains(string rel, T item)
-        {
-            bool result = false;
-
-            if (item != null
-                && this.Contains(rel))
-            {
-                result = this.relations[rel].Contains(item);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the specified item occurs in the collection.
-        /// </summary>
-        /// <param name="item">The item that would be in the collection.</param>
-        /// <returns>A value indicating whether the item is in the collection.</returns>
-        public virtual bool Contains(T item)
-        {
-            bool result = false;
-
-            if (item != null)
-            {
-                result = this.Relations.Any(rel => this.Contains(rel, item));
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Returns all items in the specified relation.
+        /// Returns all items in the specified relation, or null if the relation is not found.
         /// </summary>
         /// <param name="rel">The relation to get items for.</param>
         /// <returns>All items in the specified relation.</returns>
-        public IEnumerable<T> Get(string rel)
+        public ICollection<T> Get(string rel)
         {
-            IEnumerable<T> result = null;
+            ICollection<T> result = null;
+
             if (this.Contains(rel))
             {
                 result = this.relations[rel];
-            }
-
-            if (result == null)
-            {
-                yield break;
-            }
-            else
-            {
-                foreach (var item in result)
-                {
-                    yield return item;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the specified rel occurs in the SingleRelations collection.
-        /// </summary>
-        /// <param name="rel">The relation to check.</param>
-        /// <returns>A value indicating whether the specified relation occurs in the SingleRelations collection.</returns>
-        public virtual bool IsSingleRelation(string relation)
-        {
-            bool result = false;
-
-            if (!string.IsNullOrWhiteSpace(relation))
-            {
-                result = this.SingleRelations.Contains(relation);
             }
 
             return result;
@@ -256,13 +178,12 @@ namespace Societatis.HAL
         /// <param name="items">The items to set in the relation.</param>
         /// <exception cref="ArgumentNullException">Thrown when items is null.</exception>
         /// <exception cref="ArgumentException">Thrown when rel is null or whitespace.</exception>
-        public virtual void Set(string rel, IEnumerable<T> items)
+        public virtual void Set(string rel, ICollection<T> items)
         {
             rel.ThrowIfNullOrWhiteSpace(nameof(rel));
             items.ThrowIfNull(nameof(items));
 
-            this.Remove(rel);
-            this.Add(rel, items);
+            this.relations[rel] = items;
         }
 
         /// <summary>

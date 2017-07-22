@@ -16,7 +16,7 @@ namespace Societatis.HAL
         /// </summary>
         public LinkCollection()
         {
-            base.SingleRelations.Add("self");
+            base["self"] = new SingleCollection<ILink>();
         }
 
         /// <summary>
@@ -24,11 +24,7 @@ namespace Societatis.HAL
         /// </summary>
         public ILink Self
         {
-            get
-            {
-                var self = this["self"];
-                return self == null ? null : self.FirstOrDefault();
-            }
+            get => this["self"].FirstOrDefault();
             set
             {
                 value.ThrowIfNull(nameof(value));
@@ -40,13 +36,10 @@ namespace Societatis.HAL
         /// Gets the curies that links in the collection may refer to.
         /// </summary>
         /// <remarks>In order to add a curie to the collection, use the Add method with the 'curies' relation.</remarks>
-        public IEnumerable<ILink> Curies
+        public ICollection<ILink> Curies
         {
-            get
-            {
-                var curies = this["curies"];
-                return curies == null ? new List<ILink>().AsEnumerable() : curies.AsEnumerable();
-            }
+            get => this["curies"];
+            set => this.Set("curies", value);
         }
 
         /// <summary>
