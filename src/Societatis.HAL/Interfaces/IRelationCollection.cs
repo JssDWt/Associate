@@ -15,7 +15,7 @@ namespace Societatis.HAL
         /// <summary>
         /// Gets the names of the relations.
         /// </summary>
-        IEnumerable<string> Relations { get; }
+        IEnumerable<string> RelationNames { get; }
 
         /// <summary>
         /// Clears all relations.
@@ -35,12 +35,18 @@ namespace Societatis.HAL
         /// <param name="relation">The relation to remove.</param>
         /// <returns>A value indicathing whether the relation was removed from the collection in this call.</returns>
         bool Remove(string relation);
+
+        /// <summary>
+        /// Marks the specified relation as a singular collection, meaning it can only contain one item.
+        /// </summary>
+        /// <param name="relation">The relation to mark as a singlular collection.</param>
+        void MarkSingular(string relation);
     }
 
     /// <summary>
     /// Generic interface representing a relation collection for items of a specific type.
     /// </summary>
-    public interface IRelationCollection<T> : IRelationCollection
+    public interface IRelationCollection<T> : IRelationCollection, IEnumerable<IRelation<T>>
     {
         /// <summary>
         /// Gets or sets the items in the specified relation.

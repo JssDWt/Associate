@@ -1,6 +1,7 @@
-namespace Societatis.HAL
+namespace Societatis.HAL.Converters
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -14,8 +15,8 @@ namespace Societatis.HAL
     /// </summary>
     public class RelationCollectionJsonConverter : JsonConverter
     {
+        private Type linkType;
         private Type concreteType;
-        private static readonly PropertyInfo SingleRelationsProperty = typeof(IRelationCollection).GetRuntimeProperty(nameof(IRelationCollection.SingleRelations));
 
         private const string AddMethodName = nameof(IRelationCollection<dynamic>.Add);
 
@@ -26,6 +27,18 @@ namespace Societatis.HAL
 
         public RelationCollectionJsonConverter(Type concreteType)
         {
+            concreteType.ThrowIfNull(nameof(concreteType));
+            var typeInfo = concreteType.GetTypeInfo();
+            if (!concreteType.IsConcreteType())
+            {
+                throw new ArgumentException("Type should be a concrete type.", nameof(concreteType));
+            }
+
+            if (!concreteType.GetTypeInfo().DeclaredConstructors.Any(c => c.GetParameters()?.Length == 0))
+            {
+                throw new ArgumentException("Type should have a default constructor.", nameof(concreteType));
+            }
+
             this.concreteType = concreteType;
         }
 
@@ -40,16 +53,16 @@ namespace Societatis.HAL
 
             if (objectType != null)
             {
-                result = objectType.IsOfGenericType(typeof(IRelationCollection<>));
+                var objectTypeInfo = objectType.GetTypeInfo();
+                result = objectTypeInfo.IsOfGenericType(typeof(IRelationCollection<>));
 
                 if (result == true && this.concreteType != null)
                 {
-                    result = objectType.GetTypeInfo().IsAssignableFrom(this.concreteType.GetTypeInfo());
+                    result = objectTypeInfo.IsAssignableFrom(this.concreteType.GetTypeInfo());
                 }
             }
 
             return result;
-            
         }
 
         /// <summary>
@@ -82,55 +95,75 @@ namespace Societatis.HAL
             Type parameterType = parameterTypes.Single();
             Type enumerableParameterType = typeof(IEnumerable<>).MakeGenericType(parameterType);
 
-            JsonContract objectContract = null;
-            if (this.concreteType == null)
+            var instance = GetRelationCollectionInstance(objectType, existingValue, serializer);
+
+            // var singleRelations = (ICollection<string>)SingleRelationsProperty.GetValue(instance);
+            // var addMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), parameterType });
+            // var addMultipleMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), enumerableParameterType });
+            // int level = 1;
+            // while (level > 0 && reader.Read())
+            // {
+            //     switch (reader.TokenType)
+            //     {
+            //         case JsonToken.StartObject:
+            //             level++;
+            //             break;
+            //         case JsonToken.EndObject:
+            //             level--;
+            //             break;
+            //         case JsonToken.PropertyName:
+            //             if (level == 1)
+            //             {
+            //                 string relation = (string)reader.Value;
+            //                 reader.Read();
+            //                 if (reader.TokenType == JsonToken.StartArray)
+            //                 {
+            //                     var items = serializer.Deserialize(reader, enumerableParameterType);
+            //                     addMultipleMethod.Invoke(instance, new object[] { relation, items });
+            //                 }
+            //                 else
+            //                 {
+            //                     var item = serializer.Deserialize(reader, parameterType);
+            //                     addMethod.Invoke(instance, new object[] { relation, item });
+            //                     singleRelations.Add(relation);
+            //                 }
+            //             }
+            //             break;
+            //         default:
+            //             break;
+            //     }
+            // }
+
+            return instance;
+        }
+
+        private object GetRelationCollectionInstance(Type objectType, object defaultValue, JsonSerializer serializer)
+        {
+            object instance = null;
+            if (defaultValue != null && defaultValue.IsInstanceOfGenericType(typeof(IRelationCollection<>)))
             {
-                objectContract = serializer.ContractResolver.ResolveContract(objectType);
+                instance = defaultValue;
             }
             else
             {
-                objectContract = serializer.ContractResolver.ResolveContract(this.concreteType);
+                JsonContract objectContract = null;
+                if (this.concreteType == null)
+                {
+                    objectContract = serializer.ContractResolver.ResolveContract(objectType);
+                }
+                else
+                {
+                    objectContract = serializer.ContractResolver.ResolveContract(this.concreteType);
+                }
+
+                instance = objectContract?.DefaultCreator?.Invoke();
+            }
+
+            if (instance == null)
+            {
+                throw new JsonSerializationException($"Could not resolve the contract for type {objectType.Name}");
             }
             
-            object instance = objectContract.DefaultCreator();
-
-            var singleRelations = (ICollection<string>)SingleRelationsProperty.GetValue(instance);
-            var addMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), parameterType });
-            var addMultipleMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), enumerableParameterType });
-            int level = 1;
-            while (level > 0 && reader.Read())
-            {
-                switch (reader.TokenType)
-                {
-                    case JsonToken.StartObject:
-                        level++;
-                        break;
-                    case JsonToken.EndObject:
-                        level--;
-                        break;
-                    case JsonToken.PropertyName:
-                        if (level == 1)
-                        {
-                            string relation = (string)reader.Value;
-                            reader.Read();
-                            if (reader.TokenType == JsonToken.StartArray)
-                            {
-                                var items = serializer.Deserialize(reader, enumerableParameterType);
-                                addMultipleMethod.Invoke(instance, new object[] { relation, items });
-                            }
-                            else
-                            {
-                                var item = serializer.Deserialize(reader, parameterType);
-                                addMethod.Invoke(instance, new object[] { relation, item });
-                                singleRelations.Add(relation);
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-
             return instance;
         }
 
@@ -142,44 +175,37 @@ namespace Societatis.HAL
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value == null) return;
-
             writer.ThrowIfNull(nameof(writer));
             serializer.ThrowIfNull(nameof(serializer));
 
-            var valueType = value.GetType();
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
 
+            var valueType = value.GetType();
             if (!this.CanConvert(valueType))
             {
                 throw new ArgumentException($"Cannot write type '{valueType.FullName}', because it is not a '{typeof(IRelationCollection<>).FullName}'");
             }
 
-            var valueTypeInfo = valueType.GetTypeInfo();
+            var relationTypeInfo = typeof(IRelation<>).GetTypeInfo();
+            var relationProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.Relation));
+            var isSingularProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.IsSingular));
+            var itemsProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.Items));
 
-            // Get single relations
-            IEnumerable<string> singles = (IEnumerable<string>) valueType.GetRuntimeProperty(nameof(RelationCollection<dynamic>.SingleRelations))
-                                                                         .GetMethod
-                                                                         .Invoke(value, null);
-
-            // Get relations
-            IEnumerable<string> relations = (IEnumerable<string>) valueType.GetRuntimeProperty(nameof(RelationCollection<dynamic>.Relations))
-                                                                           .GetMethod
-                                                                           .Invoke(value, null);
-            
             writer.WriteStartObject();
 
-            // Loop all relations
-            foreach (var relation in relations)
+            foreach (var relation in (value as IEnumerable))
             {
-                // Get the items in the current relation.
-                var getMethod = valueType.GetRuntimeMethod(nameof(RelationCollection<dynamic>.Get), new Type[] { typeof(string) });              
-                var items = (IEnumerable<object>)getMethod.Invoke(value, new object[] {relation});
+                writer.WritePropertyName((string)relationProperty.GetValue(relation));
 
-                writer.WritePropertyName(relation);
-
-                if (singles.Contains(relation))
+                var items = (IEnumerable)itemsProperty.GetValue(relation);
+                if ((bool)isSingularProperty.GetValue(relation))
                 {
-                    serializer.Serialize(writer, items.FirstOrDefault());
+                    var item = items.Cast<object>().SingleOrDefault();
+                    serializer.Serialize(writer, item);
                 }
                 else
                 {

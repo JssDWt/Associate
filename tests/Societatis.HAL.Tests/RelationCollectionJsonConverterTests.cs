@@ -63,7 +63,7 @@ namespace Societatis.HAL.Tests
                 var typedResult = Assert.IsType<RelationCollection<Link>>(result);
                 Assert.Equal(3, typedResult.Count);
                 Assert.Equal(3, typedResult.ItemCount);
-                Assert.Equal(new string[] { "self", "next", "find" }, typedResult.Relations);
+                Assert.Equal(new string[] { "self", "next", "find" }, typedResult.RelationNames);
                 Assert.Equal(new string[] { "self", "next", "find" }, typedResult.SingleRelations);
                 Assert.Equal(1, typedResult["self"].Count());
                 Assert.Equal(new Uri("/orders", UriKind.Relative), typedResult["self"].Single().HRef);

@@ -1,6 +1,7 @@
 namespace Societatis.Misc
 {
     using System;
+    using System.Reflection;
 
     /// <summary>
     /// Class containing extension methods for objects.
@@ -36,6 +37,11 @@ namespace Societatis.Misc
             {
                 throw new ArgumentNullException(paramName, message);
             }
+        }
+
+        public static bool IsInstanceOfGenericType(this object obj, Type genericType)
+        {
+            return obj.GetType().GetTypeInfo().IsOfGenericType(genericType);
         }
     }
 }

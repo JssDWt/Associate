@@ -10,6 +10,8 @@ namespace Societatis.HAL
     /// </summary>
     public class RelationCollection<T> : IRelationCollection<T>
     {
+        private HashSet<string> singularRelations = new HashSet<string>();
+
         /// <summary>
         /// Field containing all relations and their items.
         /// </summary>
@@ -92,13 +94,13 @@ namespace Societatis.HAL
         /// <summary>
         /// Gets the names of the relations.
         /// </summary>
-        public virtual IEnumerable<string> Relations
+        public virtual IEnumerable<string> RelationNames
         {
             get
             {
-                foreach (var relation in this.relations.Keys)
+                foreach (var relation in this.relations.Where(r => r.Value?.Count > 0 ))
                 {
-                    yield return relation;
+                    yield return relation.Key;
                 }
             }
         }
@@ -148,7 +150,8 @@ namespace Societatis.HAL
 
             if (!string.IsNullOrWhiteSpace(rel))
             {
-                result = this.relations.ContainsKey(rel);
+                result = this.relations.ContainsKey(rel) 
+                    && this.relations[rel].Count > 0;
             }
 
             return result;
@@ -218,6 +221,56 @@ namespace Societatis.HAL
             }
 
             return removed;
+        }
+
+        public virtual void MarkSingular(string relation)
+        {
+            relation.ThrowIfNullOrWhiteSpace(nameof(relation));
+            if (!this.singularRelations.Contains(relation))
+            {
+                var oldCollection = this.Get(relation);
+                var newCollection = new SingularCollection<T>();
+
+                if (oldCollection != null)
+                {
+                    if (oldCollection.Count > 1)
+                    {
+                        throw new InvalidOperationException(
+                            $"Cannot mark relation {relation} as singular, because it currently contains more than one item.");
+                    }
+
+                    // Add zero or one item(s).
+                    foreach (var item in oldCollection)
+                    {
+                        newCollection.Add(item);
+                    }
+                }
+
+                this.Set(relation, newCollection);
+                this.singularRelations.Add(relation);
+            }
+        }
+
+        public IEnumerator<IRelation<T>> GetEnumerator()
+        {
+            foreach (var relationName in this.RelationNames)
+            {
+                yield return new HALRelation<T>
+                {
+                    Relation = relationName,
+                    IsSingular = this.singularRelations.Contains(relationName),
+                    Items = this[relationName]
+                };
+            }
+        }
+
+        private class HALRelation<TRelation> : IRelation<TRelation>
+        {
+            public string Relation { get; set; }
+
+            public bool IsSingular { get; set; }
+
+            public ICollection<TRelation> Items { get; set; }
         }
     }
 }

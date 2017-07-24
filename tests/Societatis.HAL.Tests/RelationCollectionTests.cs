@@ -408,7 +408,7 @@ namespace Societatis.HAL.Tests
             public void Default_Empty()
             {
                 var relations = new RelationCollection<string>();
-                var result = relations.Relations;
+                var result = relations.RelationNames;
                 Assert.NotNull(result);
                 Assert.False(result.Any());
             }
@@ -433,7 +433,7 @@ namespace Societatis.HAL.Tests
                 links.Add("third", item);
                 links.Add("fourth", item);
 
-                Assert.Equal(expected, links.Relations);
+                Assert.Equal(expected, links.RelationNames);
             }
         }
 

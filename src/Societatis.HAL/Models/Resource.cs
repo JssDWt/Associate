@@ -1,6 +1,8 @@
 namespace Societatis.HAL
 {
+    using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using Newtonsoft.Json;
     using Societatis.Misc;
 
@@ -120,6 +122,7 @@ namespace Societatis.HAL
         /// Gets or sets the data of the current resource.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown when the data is set to null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the data object implements <see cref="IResource" />.</exception>
         [JsonIgnore]
         public T Data
         {
@@ -127,6 +130,12 @@ namespace Societatis.HAL
             set
             {
                 value.ThrowIfNull(nameof(value));
+                if (value is IResource)
+                {
+                    throw new ArgumentException(
+                        $"Cannot set value to an object that implements the {nameof(IResource)} interface. " +
+                        "That would break the HAL constraints.", nameof(value));
+                }
                 this.data = value;
             }
         }

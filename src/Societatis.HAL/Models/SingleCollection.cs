@@ -5,7 +5,7 @@ namespace Societatis.HAL
     using System.Collections.Generic;
     using Societatis.Misc;
 
-    public class SingleCollection<T> : ICollection<T>
+    public class SingularCollection<T> : ICollection<T>
     {
         public T Item
         {

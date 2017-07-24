@@ -1,4 +1,4 @@
-namespace Societatis.HAL
+namespace Societatis.HAL.Converters
 {
     using System;
     using System.Linq;
