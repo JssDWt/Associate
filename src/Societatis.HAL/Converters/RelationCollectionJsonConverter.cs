@@ -13,158 +13,69 @@ namespace Societatis.HAL.Converters
     /// <summary>
     /// Json converter for HAL relation collections.
     /// </summary>
-    public class RelationCollectionJsonConverter : JsonConverter
+    public class RelationCollectionJsonConverter<T> : JsonConverter
     {
-        private Type linkType;
-        private Type concreteType;
-
-        private const string AddMethodName = nameof(IRelationCollection<dynamic>.Add);
-
-        public RelationCollectionJsonConverter()
-        {
-            
-        }
-
-        public RelationCollectionJsonConverter(Type concreteType)
-        {
-            concreteType.ThrowIfNull(nameof(concreteType));
-            var typeInfo = concreteType.GetTypeInfo();
-            if (!concreteType.IsConcreteType())
-            {
-                throw new ArgumentException("Type should be a concrete type.", nameof(concreteType));
-            }
-
-            if (!concreteType.GetTypeInfo().DeclaredConstructors.Any(c => c.GetParameters()?.Length == 0))
-            {
-                throw new ArgumentException("Type should have a default constructor.", nameof(concreteType));
-            }
-
-            this.concreteType = concreteType;
-        }
+        public override bool CanRead => true;
+        public override bool CanWrite => true;
 
         /// <summary>
-        /// Determines whether this instance can convert the specified object type.
+        /// Provides a value indicating whether the specified object type can be converted with the current 
+        /// <see cref="JsonConverter" />. Returns true if <see cref="IRelationCollection<T>" /> can be assigned from it.
         /// </summary>
-        /// <param name="objectType">Type of the object.</param>
-        /// <returns>true if this instance can convert the specified object type; otherwise, false.</returns>
+        /// <param name="objectType">The type to convert.</param>
+        /// <returns><c>true</c> if the specified type can be converted. Otherwise; <c>false</c>.</returns>
         public override bool CanConvert(Type objectType)
         {
-            bool result = false;
+            bool canConvert = false;
 
             if (objectType != null)
             {
                 var objectTypeInfo = objectType.GetTypeInfo();
-                result = objectTypeInfo.IsOfGenericType(typeof(IRelationCollection<>));
-
-                if (result == true && this.concreteType != null)
-                {
-                    result = objectTypeInfo.IsAssignableFrom(this.concreteType.GetTypeInfo());
-                }
+                canConvert = typeof(IRelationCollection<T>).GetTypeInfo().IsAssignableFrom(objectTypeInfo)
+                    && objectTypeInfo.IsConcreteType();
             }
 
-            return result;
+            return canConvert;
         }
 
         /// <summary>
-        /// Reads the JSON representation of the object.
+        /// Reads the HAL relation collection object from json and populates a relation collection of T with them.
         /// </summary>
-        /// <param name="reader">The <see cref="JsonReader" /> to read from.</param>
-        /// <param name="objectType">Type of the object.</param>
-        /// <param name="existingValue">The existing value of object being read.</param>
-        /// <param name="serializer">The calling serializer.</param>
-        /// <returns>The object value.</returns>
+        /// <param name="reader">The reader to read json with.</param>
+        /// <param name="objectType">The type of the object to instantiate.</param>
+        /// <param name="existingValue">An existing instance of <see cref="IRelationCollection<T>" />.</param>
+        /// <param name="serializer">The serializer to deserialize subtypes with.</param>
+        /// <returns>A instance of the specified object type, populated with relations from the specified json.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when reader, objectType or serializer is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the provided type is not a concrete type.</exception>
+        /// <exception cref="JsonSerializationException">Thrown when the provided json cannot be deserialized.</exception>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (!this.CanConvert(objectType))
-            {
-                throw new ArgumentException($"Cannot read as type '{objectType?.FullName ?? "[NULL]"}', because it is not a '{typeof(IRelationCollection<>).FullName}'");
-            }
-
             reader.ThrowIfNull(nameof(reader));
             serializer.ThrowIfNull(nameof(serializer));
+            objectType.ThrowIfNull(nameof(objectType));
+            var objectTypeInfo = objectType.GetTypeInfo();
+            if (!objectTypeInfo.IsConcreteType())
+            {
+                throw new ArgumentException("Cannot read json into a non-concrete type.", nameof(objectType));
+            }
+
+            var objectTypeContract = serializer.ContractResolver.ResolveContract(objectType);
+            var relationCollection = (IRelationCollection<T>)(existingValue ?? objectTypeContract.DefaultCreator());
 
             AdvanceToData(reader);
-
-            Type[] parameterTypes = objectType.GetGenericParameterTypes(typeof(IRelationCollection<>));
-            if (parameterTypes == null
-                || parameterTypes.Length != 1)
+            int objectDepth = reader.Depth;
+            while (reader.Depth >= objectDepth 
+                && reader.Read())
             {
-                throw new ArgumentException("The specified object type does not meet the constraints needed to deserialize it as a relationcollection.");
-            }
-
-            Type parameterType = parameterTypes.Single();
-            Type enumerableParameterType = typeof(IEnumerable<>).MakeGenericType(parameterType);
-
-            var instance = GetRelationCollectionInstance(objectType, existingValue, serializer);
-
-            // var singleRelations = (ICollection<string>)SingleRelationsProperty.GetValue(instance);
-            // var addMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), parameterType });
-            // var addMultipleMethod = objectType.GetRuntimeMethod(AddMethodName, new Type[] { typeof(string), enumerableParameterType });
-            // int level = 1;
-            // while (level > 0 && reader.Read())
-            // {
-            //     switch (reader.TokenType)
-            //     {
-            //         case JsonToken.StartObject:
-            //             level++;
-            //             break;
-            //         case JsonToken.EndObject:
-            //             level--;
-            //             break;
-            //         case JsonToken.PropertyName:
-            //             if (level == 1)
-            //             {
-            //                 string relation = (string)reader.Value;
-            //                 reader.Read();
-            //                 if (reader.TokenType == JsonToken.StartArray)
-            //                 {
-            //                     var items = serializer.Deserialize(reader, enumerableParameterType);
-            //                     addMultipleMethod.Invoke(instance, new object[] { relation, items });
-            //                 }
-            //                 else
-            //                 {
-            //                     var item = serializer.Deserialize(reader, parameterType);
-            //                     addMethod.Invoke(instance, new object[] { relation, item });
-            //                     singleRelations.Add(relation);
-            //                 }
-            //             }
-            //             break;
-            //         default:
-            //             break;
-            //     }
-            // }
-
-            return instance;
-        }
-
-        private object GetRelationCollectionInstance(Type objectType, object defaultValue, JsonSerializer serializer)
-        {
-            object instance = null;
-            if (defaultValue != null && defaultValue.IsInstanceOfGenericType(typeof(IRelationCollection<>)))
-            {
-                instance = defaultValue;
-            }
-            else
-            {
-                JsonContract objectContract = null;
-                if (this.concreteType == null)
+                if (reader.TokenType == JsonToken.PropertyName
+                    && reader.Depth == objectDepth)
                 {
-                    objectContract = serializer.ContractResolver.ResolveContract(objectType);
+                    PopulateRelation(relationCollection, reader, serializer);
                 }
-                else
-                {
-                    objectContract = serializer.ContractResolver.ResolveContract(this.concreteType);
-                }
-
-                instance = objectContract?.DefaultCreator?.Invoke();
             }
 
-            if (instance == null)
-            {
-                throw new JsonSerializationException($"Could not resolve the contract for type {objectType.Name}");
-            }
-            
-            return instance;
+            return relationCollection;
         }
 
         /// <summary>
@@ -229,6 +140,61 @@ namespace Societatis.HAL.Converters
                     throw new JsonSerializationException("Expected start object.");
                 }
             }
+        }
+
+        /// <summary>
+        /// Populates the specified relation collection with the relation property the reader is currently at.
+        /// This method expects the reader to be pointed at a <see cref="JsonToken.PropertyName" /> inside the 
+        /// relation collection object.
+        /// </summary>
+        /// <param name="relationCollection">The collection to populate the relation on.</param>
+        /// <param name="reader">The reader to read the relation from.</param>
+        /// <param name="serializer">Serializer to deserialize relation items inside the current relation.</param>
+        private void PopulateRelation(IRelationCollection<T> relationCollection, JsonReader reader, JsonSerializer serializer)
+        {
+            string relation = (string)reader.Value;
+
+            // Advance to the property value.
+            while (reader.TokenType != JsonToken.StartArray 
+                && reader.TokenType != JsonToken.StartObject
+                && reader.Read())
+            {
+            }
+
+            Type relationType = this.GetTypeForRelation(relation);
+            Type enumerableType = typeof(IEnumerable<>).MakeGenericType(relationType);
+
+            // Set the relation based on whether it is an array or a single item.
+            switch (reader.TokenType)
+            {
+                case JsonToken.StartArray:
+                    var relationItems = (IEnumerable<T>)serializer.Deserialize(reader, enumerableType);
+                    relationCollection.Add(relation, relationItems);
+                    break;
+                case JsonToken.StartObject:
+                    var relationItem = (T)serializer.Deserialize(reader, relationType);
+
+                    // Mark the relation as singular as well.
+                    relationCollection.MarkSingular(relation);
+                    relationCollection.Add(relation, relationItem);
+                    break;
+                default: 
+                    throw new JsonSerializationException(
+                        $"Expecting {nameof(JsonToken.StartArray)} or {nameof(JsonToken.StartObject)} token " +
+                        "as the start of a relation value.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the type to deserialize objects from the specified relation into.
+        /// Always returns the <see cref="LinkType" />.
+        /// </summary>
+        /// <param name="relation">The relation containing items.</param>
+        /// <returns>The type of the objects in the relation.</returns>
+        protected virtual Type GetTypeForRelation(string relation)
+        {
+            // Always return the linktype.
+            return typeof(T);
         }
     }
 }
