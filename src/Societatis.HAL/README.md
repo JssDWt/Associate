@@ -17,6 +17,28 @@ Or using the generic resource:
 var model = new Model();
 var resource = new Resource<Model>(model);
 ```
+
+### Links
+Add links to your resources. They are added in a relation to the model.
+```cs
+var details = new Link("/details");
+// Set title, name, hreflang etc. here.
+resource.Links["details"].Add(details);
+```
+Or assign your own collection.
+```cs
+var orders = new List<ILink>
+{
+    new Link("/orders/1"),
+    new Link("/orders/2"),
+    // etc.
+};
+resource.Links["orders"] = orders;
+```
+### Curies
+### Embedded resources
+## Advanced functionality
+## Inner working
 ### Serialization
 
 ### Deserialization
@@ -29,3 +51,4 @@ Resource and Resource<T>
   1. Type information from the json resource itself is used to find the right class.
   2. The JsonConverter will have a set of functions that provide the right type for a resource. Provided in the function will be the resource type and its relation. The first function that returns a concrete type is used.
   3. If ThrowOnTypeNotFound is true, an exception is raised, otherwise, only the resource information will be deserialized.
+
