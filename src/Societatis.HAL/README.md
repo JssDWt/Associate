@@ -36,9 +36,12 @@ var orders = new List<ILink>
 resource.Links["orders"] = orders;
 ```
 ### Curies
+Coming up.
 ### Embedded resources
 ## Advanced functionality
+### Singular relations
 ## Inner working
+### JsonConverters
 ### Serialization
 
 ### Deserialization
