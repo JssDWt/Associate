@@ -41,7 +41,8 @@ Coming up.
 Embed resources frequently requested with your model. They are added the same way as links.
 ```cs
 var details = _repo.GetDetails(model.Id);
-resource.Embedded["details"].Add(details);
+var detailResource = new Resource<OrderDetails>(details);
+resource.Embedded["details"].Add(detailResource);
 ```
 ## Advanced functionality
 ### Singular relations
