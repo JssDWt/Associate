@@ -27,7 +27,7 @@ resource.Links["details"].Add(details);
 ```
 Or assign your own collection.
 ```cs
-var orders = new List<ILink>
+ICollection<ILink> orders = new List<ILink>
 {
     new Link("/orders/1"),
     new Link("/orders/2"),
@@ -38,6 +38,11 @@ resource.Links["orders"] = orders;
 ### Curies
 Coming up.
 ### Embedded resources
+Embed resources frequently requested with your model. They are added the same way as links.
+```cs
+var details = _repo.GetDetails(model.Id);
+resource.Embedded["details"].Add(details);
+```
 ## Advanced functionality
 ### Singular relations
 ## Inner working
