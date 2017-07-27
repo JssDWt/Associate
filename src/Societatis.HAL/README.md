@@ -1,6 +1,53 @@
+# Hypermedia HAL
+Provides an easy to use wrapper around your models,
+in order to provide links and embedded resources.
+Meets the [HAL specification](https://tools.ietf.org/html/draft-kelly-json-hal-08).
 
-Include type information of the resource (inherited type) or T.
+## Functionality
+### Resources
+Transform your model to a HAL resource. Through inheritance:
+```cs
+class Model : Resource
+{
+    // implementation
+}
+```
+Or using the generic resource:
+```cs
+var model = new Model();
+var resource = new Resource<Model>(model);
+```
 
+### Links
+Add links to your resources. They are added in a relation to the model.
+```cs
+var details = new Link("/details");
+// Set title, name, hreflang etc. here.
+resource.Links["details"].Add(details);
+```
+Or assign your own collection.
+```cs
+ICollection<ILink> orders = new List<ILink>
+{
+    new Link("/orders/1"),
+    new Link("/orders/2"),
+    // etc.
+};
+resource.Links["orders"] = orders;
+```
+### Curies
+Coming up.
+### Embedded resources
+Embed resources frequently requested with your model. They are added the same way as links.
+```cs
+var details = _repo.GetDetails(model.Id);
+var detailResource = new Resource<OrderDetails>(details);
+resource.Embedded["details"].Add(detailResource);
+```
+## Advanced functionality
+### Singular relations
+## Inner working
+### JsonConverters
 ### Serialization
 
 ### Deserialization
@@ -13,3 +60,4 @@ Resource and Resource<T>
   1. Type information from the json resource itself is used to find the right class.
   2. The JsonConverter will have a set of functions that provide the right type for a resource. Provided in the function will be the resource type and its relation. The first function that returns a concrete type is used.
   3. If ThrowOnTypeNotFound is true, an exception is raised, otherwise, only the resource information will be deserialized.
+
