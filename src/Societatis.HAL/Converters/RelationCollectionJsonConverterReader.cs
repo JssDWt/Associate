@@ -13,10 +13,10 @@ namespace Societatis.HAL.Converters
     /// <summary>
     /// Json converter for HAL relation collections.
     /// </summary>
-    public class RelationCollectionJsonConverter<T> : JsonConverter
+    public class RelationCollectionJsonConverterReader<T> : JsonConverter
     {
         public override bool CanRead => true;
-        public override bool CanWrite => true;
+        public override bool CanWrite => false;
 
         /// <summary>
         /// Provides a value indicating whether the specified object type can be converted with the current 
@@ -31,7 +31,9 @@ namespace Societatis.HAL.Converters
             if (objectType != null)
             {
                 var objectTypeInfo = objectType.GetTypeInfo();
-                canConvert = typeof(IRelationCollection<T>).GetTypeInfo().IsAssignableFrom(objectTypeInfo)
+                canConvert = objectTypeInfo.IsOfGenericType(typeof(IRelationCollection<>))
+                    && typeof(T).GetTypeInfo().IsAssignableFrom(
+                        objectTypeInfo.GetGenericParameterTypes(typeof(IRelationCollection<>)).Single().GetTypeInfo())
                     && objectTypeInfo.IsConcreteType();
             }
 
@@ -54,13 +56,14 @@ namespace Societatis.HAL.Converters
             reader.ThrowIfNull(nameof(reader));
             serializer.ThrowIfNull(nameof(serializer));
             objectType.ThrowIfNull(nameof(objectType));
-            var objectTypeInfo = objectType.GetTypeInfo();
-            if (!objectTypeInfo.IsConcreteType())
+            if (!this.CanConvert(objectType))
             {
-                throw new ArgumentException("Cannot read json into a non-concrete type.", nameof(objectType));
+                throw new ArgumentException($"Cannot convert type {objectType?.Name ?? "NULL"}.", nameof(objectType));
             }
 
             var objectTypeContract = serializer.ContractResolver.ResolveContract(objectType);
+
+            // TODO: Make this method so that T can be any implementation of T. As if it were covariant so to say.
             var relationCollection = (IRelationCollection<T>)(existingValue ?? objectTypeContract.DefaultCreator());
 
             AdvanceToData(reader);
@@ -86,45 +89,7 @@ namespace Societatis.HAL.Converters
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.ThrowIfNull(nameof(writer));
-            serializer.ThrowIfNull(nameof(serializer));
-
-            if (value == null)
-            {
-                writer.WriteNull();
-                return;
-            }
-
-            var valueType = value.GetType();
-            if (!this.CanConvert(valueType))
-            {
-                throw new ArgumentException($"Cannot write type '{valueType.FullName}', because it is not a '{typeof(IRelationCollection<>).FullName}'");
-            }
-
-            var relationTypeInfo = typeof(IRelation<>).GetTypeInfo();
-            var relationProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.Relation));
-            var isSingularProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.IsSingular));
-            var itemsProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.Items));
-
-            writer.WriteStartObject();
-
-            foreach (var relation in (value as IEnumerable))
-            {
-                writer.WritePropertyName((string)relationProperty.GetValue(relation));
-
-                var items = (IEnumerable)itemsProperty.GetValue(relation);
-                if ((bool)isSingularProperty.GetValue(relation))
-                {
-                    var item = items.Cast<object>().SingleOrDefault();
-                    serializer.Serialize(writer, item);
-                }
-                else
-                {
-                    serializer.Serialize(writer, items);
-                }
-            }
-
-            writer.WriteEndObject();
+            throw new NotImplementedException();
         }
 
         /// <summary>

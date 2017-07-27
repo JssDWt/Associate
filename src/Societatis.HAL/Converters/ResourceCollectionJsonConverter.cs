@@ -5,7 +5,7 @@ namespace Societatis.HAL.Converters
     using Newtonsoft.Json;
     using Societatis.Misc;
 
-    public class ResourceCollectionJsonConverter : RelationCollectionJsonConverter<IResource>
+    public class ResourceCollectionJsonConverter : RelationCollectionJsonConverterReader<IResource>
     {
         protected override Type GetTypeForRelation(string relation)
         {
