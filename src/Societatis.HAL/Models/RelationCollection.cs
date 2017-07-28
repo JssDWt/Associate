@@ -1,6 +1,7 @@
 namespace Societatis.HAL
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using Societatis.Misc;
@@ -263,6 +264,8 @@ namespace Societatis.HAL
                 };
             }
         }
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
         private class HALRelation<TRelation> : IRelation<TRelation>
         {

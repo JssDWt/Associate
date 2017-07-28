@@ -49,11 +49,12 @@ namespace Societatis.HAL.Converters
                 serializer.ThrowIfNull(nameof(serializer));
 
                 var objectContract = serializer.ContractResolver.ResolveContract(objectType);
+                var objectTypeInfo = objectType.GetTypeInfo();
                 // NOTE: This makes sure the current JsonConverter is not reused when deserializing the resource.
                 this.canRead = false;
-                if (objectType.IsOfGenericType(typeof(Resource<>)))
+                if (objectTypeInfo.IsOfGenericType(typeof(Resource<>)))
                 {
-                    var valueTypes = objectType.GetGenericParameterTypes(typeof(Resource<>));
+                    var valueTypes = objectTypeInfo.GetGenericParameterTypes(typeof(Resource<>));
                     if (valueTypes == null
                         ||valueTypes.Length != 1)
                     {
@@ -101,11 +102,12 @@ namespace Societatis.HAL.Converters
             }
             
             object data = null;
-            Type resourceType = resource.GetType();
+            var resourceType = resource.GetType();
+            var resourceTypeInfo = resourceType.GetTypeInfo();
             JsonObjectContract resourceContract = serializer.ContractResolver.ResolveContract(resourceType) as JsonObjectContract;
             JsonObjectContract dataContract = null;
             Type dataType = null;
-            if (resourceType.IsOfGenericType(typeof(Resource<>)))
+            if (resourceTypeInfo.IsOfGenericType(typeof(Resource<>)))
             {
                 // Data property of Resource<> cannot be null, so data is now never null.
                 data = typeof(Resource<>).GetTypeInfo().GetDeclaredProperty(nameof(Resource<dynamic>.Data)).GetValue(resource);

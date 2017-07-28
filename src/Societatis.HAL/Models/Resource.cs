@@ -24,7 +24,7 @@ namespace Societatis.HAL
         protected Resource()
         {
             this.Links = new LinkCollection();
-            this.Embedded = new ResourceCollection(this.Links);
+            this.Embedded = new RelationCollection<IResource>();
         }
 
         /// <summary>
@@ -43,7 +43,6 @@ namespace Societatis.HAL
         /// Gets the links for the current resource. Containing related links to other resources.
         /// </summary>
         
-        [JsonConverter(typeof(RelationCollectionJsonConverter), typeof(LinkCollection))]
         [JsonProperty(LinksPropertyName)]
         public IRelationCollection<ILink> Links 
         { 
@@ -59,7 +58,6 @@ namespace Societatis.HAL
         /// Gets embedded resource, accompanied by the current resource, as a full, partial, 
         /// or inconsistent version of the representations served from the target Uri.
         /// </summary>
-        [JsonConverter(typeof(RelationCollectionJsonConverter), typeof(ResourceCollection))]
         [JsonProperty(EmbeddedPropertyName)]
         public IRelationCollection<IResource> Embedded 
         { 

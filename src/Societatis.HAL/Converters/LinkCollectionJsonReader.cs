@@ -6,7 +6,7 @@ namespace Societatis.HAL.Converters
     using Newtonsoft.Json;
     using Societatis.Misc;
 
-    public class LinkCollectionJsonConverter : RelationCollectionJsonConverterReader<ILink>
+    public class LinkCollectionJsonReader : RelationCollectionJsonReader<ILink>
     {
         /// <summary>
         /// Backing field for the <see cref="LinkType" /> property.
@@ -14,9 +14,9 @@ namespace Societatis.HAL.Converters
         private Type linkType;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LinkCollectionJsonConverter" /> class.
+        /// Initializes a new instance of the <see cref="LinkCollectionJsonReader" /> class.
         /// </summary>
-        public LinkCollectionJsonConverter()
+        public LinkCollectionJsonReader()
         {
             this.LinkType = typeof(Link);
         }

@@ -13,7 +13,7 @@ namespace Societatis.HAL.Converters
     /// <summary>
     /// Json converter for HAL relation collections.
     /// </summary>
-    public class RelationCollectionJsonConverterWriter : JsonConverter
+    public class RelationCollectionJsonWriter : JsonConverter
     {
         public override bool CanRead => false;
         public override bool CanWrite => true;
