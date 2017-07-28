@@ -5,32 +5,15 @@ namespace Societatis.HAL.Tests
 
     public class ResourceTests
     {
-        public class DefaultConstructor
-        {
-            [Fact]
-            public void EmbeddedHasLinksAsDependancy()
-            {
-                var resource = new TestResource();
-                Assert.NotNull(resource.Links);
-                Assert.NotNull(resource.Embedded);
-                Assert.Equal(resource.Links.SingleRelations, resource.Embedded.SingleRelations);
-
-                resource.Links.SingleRelations.Add("second");
-
-                // They should still be equal after updating the single links.
-                Assert.Equal(resource.Links.SingleRelations, resource.Embedded.SingleRelations);
-            }
-        }
-
         public class LinksEmbeddedConstructor
         {
             [Fact]
             public void LinksAndEmbeddedAreSet()
             {
                 var expectedLinks = new LinkCollection();
-                expectedLinks.SingleRelations.Add("other");
+                expectedLinks.MarkSingular("other");
 
-                var expectedEmbedded = new ResourceCollection(expectedLinks);
+                var expectedEmbedded = new RelationCollection<IResource>();
                 
                 var resource = new TestResource(expectedLinks, expectedEmbedded);
                 Assert.Equal(expectedLinks, resource.Links);
@@ -65,9 +48,9 @@ namespace Societatis.HAL.Tests
             {
                 var expectedValue = new object();
                 var expectedLinks = new LinkCollection();
-                expectedLinks.SingleRelations.Add("other");
+                expectedLinks.MarkSingular("other");
 
-                var expectedEmbedded = new ResourceCollection(expectedLinks);
+                var expectedEmbedded = new RelationCollection<IResource>();
                 
                 var resource = new Resource<object>(expectedValue, expectedLinks, expectedEmbedded);
                 Assert.Equal(expectedValue, resource.Data);
@@ -83,6 +66,12 @@ namespace Societatis.HAL.Tests
             {
                 var resource = new Resource<object>(new object());
                 Assert.Throws<ArgumentNullException>(() => resource.Data = null);
+            }
+
+            [Fact]
+            public void ThrowsIfIResource()
+            {
+                Assert.Throws<ArgumentException>(() => new Resource<TestResource>(new TestResource()));
             }
         }
     }

@@ -31,8 +31,10 @@ namespace Societatis.HAL.Converters
             if (objectType != null)
             {
                 var objectTypeInfo = objectType.GetTypeInfo();
+                var genericParameter = objectTypeInfo.GetGenericParameterTypes(typeof(IRelationCollection<>))?.SingleOrDefault();
                 canConvert = objectTypeInfo.IsOfGenericType(typeof(IRelationCollection<>))
-                    && objectTypeInfo.GetGenericParameterTypes(typeof(IRelationCollection<>)).SingleOrDefault() != null;
+                    &&  genericParameter != null
+                    && !genericParameter.IsGenericParameter;
             }
 
             return canConvert;
@@ -66,7 +68,13 @@ namespace Societatis.HAL.Converters
                 throw new ArgumentException($"Cannot write type '{valueType.FullName}', because it is not a '{typeof(IRelationCollection<>).FullName}'");
             }
 
-            var relationTypeInfo = typeof(IRelation<>).GetTypeInfo();
+            var genericArgumentType = valueType.GetTypeInfo().GetGenericParameterTypes(typeof(IRelationCollection<>)).SingleOrDefault();
+            if (genericArgumentType == null)
+            {
+                throw new ArgumentException($"No generic argument type found for interface {typeof(IRelationCollection<>).Name}.");
+            }
+
+            var relationTypeInfo = typeof(IRelation<>).MakeGenericType(genericArgumentType).GetTypeInfo();
             var relationProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.Relation));
             var isSingularProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.IsSingular));
             var itemsProperty = relationTypeInfo.GetDeclaredProperty(nameof(IRelation<dynamic>.Items));

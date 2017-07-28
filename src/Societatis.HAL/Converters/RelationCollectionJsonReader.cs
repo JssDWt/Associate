@@ -31,10 +31,14 @@ namespace Societatis.HAL.Converters
             if (objectType != null)
             {
                 var objectTypeInfo = objectType.GetTypeInfo();
-                canConvert = objectTypeInfo.IsOfGenericType(typeof(IRelationCollection<>))
-                    && typeof(T).GetTypeInfo().IsAssignableFrom(
-                        objectTypeInfo.GetGenericParameterTypes(typeof(IRelationCollection<>)).Single().GetTypeInfo())
-                    && objectTypeInfo.IsConcreteType();
+                if (objectTypeInfo.IsOfGenericType(typeof(IRelationCollection<>)))
+                {
+                    var genericParameter = objectTypeInfo.GetGenericParameterTypes(typeof(IRelationCollection<>))?.SingleOrDefault();
+                    canConvert = genericParameter != null
+                        && !genericParameter.IsGenericParameter
+                        && typeof(T).GetTypeInfo().IsAssignableFrom(genericParameter.GetTypeInfo())
+                        && objectTypeInfo.IsConcreteType();
+                }
             }
 
             return canConvert;
@@ -72,7 +76,7 @@ namespace Societatis.HAL.Converters
                 && reader.Read())
             {
                 if (reader.TokenType == JsonToken.PropertyName
-                    && reader.Depth == objectDepth)
+                    && reader.Depth == (objectDepth + 1))
                 {
                     PopulateRelation(relationCollection, reader, serializer);
                 }

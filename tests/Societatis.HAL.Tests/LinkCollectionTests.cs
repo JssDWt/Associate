@@ -10,10 +10,10 @@ namespace Societatis.HAL.Tests
         public class DefaultConstructor
         {
             [Fact]
-            public void SelfIsSingleRelation()
+            public void SelfIsSingularRelation()
             {
                 var links = new LinkCollection();
-                Assert.Equal(new string[] {"self"}, links.SingleRelations);
+                Assert.Equal(new string[] {"self"}, links.SingularRelations);
             }
         }
 
@@ -59,7 +59,7 @@ namespace Societatis.HAL.Tests
                 var secondLink = new Link(new Uri("/details", UriKind.Relative));
 
                 var links = new LinkCollection();
-                links.SingleRelations.Add("other");
+                links.MarkSingular("other");
                 links.Add("other", firstLink);
                 Assert.Throws<InvalidOperationException>(() => links.Add("other", secondLink));
             }
@@ -127,17 +127,6 @@ namespace Societatis.HAL.Tests
             }
         }
 
-        public class IsSingleRelationMethod
-        {
-            [Fact]
-            public void Default_SelfReturnsTrue()
-            {
-                var links = new LinkCollection();
-                bool result = links.IsSingleRelation("self");
-                Assert.True(result);
-            }
-        }
-
         public class SelfProperty
         {
             [Fact]
@@ -163,17 +152,19 @@ namespace Societatis.HAL.Tests
             {
                 // Arrange
                 var links = new LinkCollection();
-                links.SingleRelations.Remove("self");
-                var first = new Link(new Uri("/first", UriKind.Relative));
-                var second = new Link(new Uri("/second", UriKind.Relative));
-                links.Add("self", first);
-                links.Add("self", second);
+                var selfLinks = new List<ILink>
+                {
+                    new Link(new Uri("/first", UriKind.Relative)),
+                    new Link(new Uri("/second", UriKind.Relative))
+                };
+
+                links["self"] = selfLinks;
 
                 // Act
                 ILink actual = links.Self;
 
                 // Assert
-                Assert.Equal(first, actual);
+                Assert.Equal(selfLinks[0], actual);
             }
         }
     }

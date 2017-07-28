@@ -27,6 +27,8 @@ namespace Societatis.HAL.Tests
 
         public IEnumerable<string> RelationNames => throw new NotImplementedException();
 
+        public IEnumerable<string> SingularRelations => throw new NotImplementedException();
+
         public void Add(string rel, IEnumerable<ConcreteLink> items)
         {
             throw new NotImplementedException();
@@ -90,6 +92,8 @@ namespace Societatis.HAL.Tests
         public int Count => throw new NotImplementedException();
 
         public IEnumerable<string> RelationNames => throw new NotImplementedException();
+
+        public IEnumerable<string> SingularRelations => throw new NotImplementedException();
 
         public void Add(string rel, IEnumerable<ILink> items)
         {
@@ -155,6 +159,8 @@ namespace Societatis.HAL.Tests
 
         public IEnumerable<string> RelationNames => throw new NotImplementedException();
 
+        public IEnumerable<string> SingularRelations => throw new NotImplementedException();
+
         public void Add(string rel, IEnumerable<IResource> items)
         {
             throw new NotImplementedException();
@@ -218,6 +224,8 @@ namespace Societatis.HAL.Tests
         public int Count => throw new NotImplementedException();
 
         public IEnumerable<string> RelationNames => throw new NotImplementedException();
+
+        public IEnumerable<string> SingularRelations => throw new NotImplementedException();
 
         public void Add(string rel, IEnumerable<IResource> items)
         {

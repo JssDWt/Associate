@@ -4,6 +4,7 @@ namespace Societatis.HAL
     using System.Collections.Generic;
     using System.Reflection;
     using Newtonsoft.Json;
+    using Societatis.HAL.Converters;
     using Societatis.Misc;
 
     /// <summary>
@@ -34,6 +35,18 @@ namespace Societatis.HAL
         /// <param name="links">The links for the current resource.</param>
         /// <param name="embedded">The embedded resources for the current resource.</param>
         protected Resource(IRelationCollection<ILink> links, IRelationCollection<IResource> embedded)
+        {
+            this.Links = links;
+            this.Embedded = embedded;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Resource" /> class,
+        /// using the specified links and embedded resources.
+        /// </summary>
+        /// <param name="links">The links for the current resource.</param>
+        /// <param name="embedded">The embedded resources for the current resource.</param>
+        protected Resource(LinkCollection links, RelationCollection<IResource> embedded)
         {
             this.Links = links;
             this.Embedded = embedded;

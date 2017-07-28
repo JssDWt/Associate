@@ -80,7 +80,13 @@ namespace Societatis.HAL
         {
             get
             {
-                ICollection<T> result = this.Get(rel);
+                ICollection<T> result = null;
+
+                if (this.relations.ContainsKey(rel))
+                {
+                    result = this.relations[rel];
+                }
+                
                 if (result == null)
                 {
                     result = this.DefaultValueProvider();
@@ -102,6 +108,17 @@ namespace Societatis.HAL
                 foreach (var relation in this.relations.Where(r => r.Value?.Count > 0 ))
                 {
                     yield return relation.Key;
+                }
+            }
+        }
+
+        public IEnumerable<string> SingularRelations
+        {
+            get
+            {
+                foreach (var rel in this.singularRelations)
+                {
+                    yield return rel;
                 }
             }
         }

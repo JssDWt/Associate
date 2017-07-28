@@ -73,5 +73,10 @@ namespace Societatis.HAL.Tests
                 Assert.False(actual);
             }
         }
+
+        public class ReadJsonMethod
+        {
+            // TODO: Write some read json tests.
+        }
     }
 }

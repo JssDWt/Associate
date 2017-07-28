@@ -16,7 +16,7 @@ namespace Societatis.HAL
         /// </summary>
         public LinkCollection()
         {
-            base["self"] = new SingularCollection<ILink>();
+            base.MarkSingular("self");
         }
 
         /// <summary>

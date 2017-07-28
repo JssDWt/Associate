@@ -16,11 +16,31 @@ namespace Societatis.HAL
         /// <summary>
         /// Initializes a new instance of the <see cref="Link" /> class.
         /// </summary>
+        public Link()
+        {
+            
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Link" /> class.
+        /// </summary>
         /// <param name="href">The location of the resource the link points at.</param>
         public Link(Uri href)
+            :this()
         {
             // NOTE: Argument validation is done in the setter of the property.
             this.HRef = href;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Link" /> class.
+        /// </summary>
+        /// <param name="href">The relative location of the resource the link points at.</param>
+        public Link(string href)
+            :this()
+        {
+            // NOTE: Argument validation is done in the setter of the property.
+            this.HRef = new Uri(href, UriKind.Relative);
         }
 
         /// <summary>

@@ -10,10 +10,10 @@ namespace Societatis.HAL.Tests
         public class AddMethod
         {
             [Fact]
-            public void ThrowsIfItemNull()
+            public void DoesNotThrowIfItemNull()
             {
                 var relations = new RelationCollection<string>();
-                Assert.Throws<ArgumentNullException>(() => relations.Add("other", null as string));
+                relations.Add("other", null as string);
             }
 
             [Theory]
@@ -23,7 +23,7 @@ namespace Societatis.HAL.Tests
             public void ThrowsIfRelNullOrWhitespace(string rel)
             {
                 var relations = new RelationCollection<string>();
-                Assert.Throws<ArgumentException>(() => relations.Add(rel, "something"));
+                Assert.ThrowsAny<ArgumentException>(() => relations.Add(rel, "something"));
             }
 
             [Fact]
@@ -44,7 +44,7 @@ namespace Societatis.HAL.Tests
             public void AddTwoToSingleRelation_Throws()
             {
                 var relations = new RelationCollection<string>();
-                relations.SingleRelations.Add("other");
+                relations.MarkSingular("other");
                 relations.Add("other", "something");
                 Assert.Throws<InvalidOperationException>(() => relations.Add("other", "else"));
             }
@@ -61,39 +61,6 @@ namespace Societatis.HAL.Tests
                 relations.Add("other", expectedItems);
 
                 Assert.Equal(expectedItems, relations["other"]);
-            }
-        }
-
-        public class AllProperty
-        {
-            [Fact]
-            public void SeveralRels_ReturnsAllItems()
-            {
-                var expected =new List<Tuple<string, string>>
-                {
-                    new Tuple<string, string>("first", "something"),
-                    new Tuple<string, string>("first", "else"),
-                    new Tuple<string, string>("second", "completely"),
-                    new Tuple<string, string>("third", "different"),
-                };
-
-                var relations = new RelationCollection<string>();
-                foreach (var link in expected)
-                {
-                    relations.Add(link.Item1, link.Item2);
-                }
-
-                Assert.False(expected.Select(e => e.Item2).Except(relations.All).Any());
-                Assert.False(relations.All.Except(expected.Select(e => e.Item2)).Any());
-            }
-
-            [Fact]
-            public void NoItems_ReturnsEmptyEnumerable()
-            {
-                var relations = new RelationCollection<string>();
-                var result = relations.All;
-                Assert.NotNull(result);
-                Assert.False(result.Any());
             }
         }
 
@@ -118,7 +85,7 @@ namespace Societatis.HAL.Tests
 
                 relations.Clear();
 
-                Assert.Equal(0, relations.ItemCount);
+                Assert.Equal(0, relations.Count);
             }
 
             [Fact]
@@ -161,87 +128,6 @@ namespace Societatis.HAL.Tests
                 bool result = relations.Contains("second");
                 Assert.False(result);
             }
-
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData("  ")]
-            public void RelItem_NullOrWhitespaceRel_ReturnsFalse(string rel)
-            {
-                var relations= new RelationCollection<string>();
-                bool result = relations.Contains(rel, "seomthing");
-                Assert.False(result);
-            }
-
-            [Fact]
-            public void RelItem_NullLink_ReturnsFalse()
-            {
-                var relations = new RelationCollection<string>();
-                relations.Add("other", "something");
-                bool result = relations.Contains("other", null);
-                Assert.False(result);
-            }
-
-            [Fact]
-            public void RelItem_ExistingItem_ReturnsTrue()
-            {
-                var relations = new RelationCollection<string>();
-                string item = "something";
-                relations.Add("other", item);
-                bool result = relations.Contains("other", item);
-                Assert.True(result);
-            }
-
-            [Fact]
-            public void RelItem_NonExistingItem_ReturnsFalse()
-            {
-                var relations = new RelationCollection<string>();
-                string item = "something";
-                string otherItem = "else";
-                relations.Add("other", item);
-                bool result = relations.Contains("other", otherItem);
-                Assert.False(result);
-            }
-
-            [Fact]
-            public void RelItem_NonExistingRel_ReturnsFalse()
-            {
-                var relations = new RelationCollection<string>();
-                var item = "something";
-                relations.Add("first", item);
-                bool result = relations.Contains("second", item);
-                Assert.False(result);
-            }
-
-            [Fact]
-            public void Item_NullLink_ReturnsFalse()
-            {
-                var relations = new RelationCollection<string>();
-                relations.Add("other", "something");
-                bool result = relations.Contains(null as string);
-                Assert.False(result);
-            }
-
-            [Fact]
-            public void Item_ExistingItem_ReturnsTrue()
-            {
-                var relations = new RelationCollection<string>();
-                var item = "something";
-                relations.Add("other", item);
-                bool result = relations.Contains(item: item);
-                Assert.True(result);
-            }
-
-            [Fact]
-            public void Item_NonExistantItem_ReturnsFalse()
-            {
-                var relations = new RelationCollection<string>();
-                var item = "something";
-                var otherItem = "else";
-                relations.Add("other", item);
-                bool result = relations.Contains(otherItem);
-                Assert.False(result);
-            }
         }
 
         public class CountProperty
@@ -250,11 +136,11 @@ namespace Societatis.HAL.Tests
             public void DefaultZero()
             {
                 var relations = new RelationCollection<string>();
-                Assert.Equal(0, relations.ItemCount);
+                Assert.Equal(0, relations.Count);
             }
 
             [Fact]
-            public void CountsAllItems()
+            public void CountsAllRelations()
             {
                 var expected = new List<Tuple<string, string>>
                 {
@@ -270,7 +156,7 @@ namespace Societatis.HAL.Tests
                     relations.Add(item.Item1, item.Item2);
                 }
 
-                Assert.Equal(expected.Count, relations.ItemCount);
+                Assert.Equal(3, relations.Count);
             }
         }
 
@@ -280,33 +166,31 @@ namespace Societatis.HAL.Tests
             [InlineData(null)]
             [InlineData("")]
             [InlineData("  ")]
-            public void NullOrWhitespaceRel_ReturnsEmpty(string rel)
+            public void NullOrWhitespaceRel_ReturnsNull(string rel)
             {
                 var relations = new RelationCollection<string>();
-                IEnumerable<string> result = relations.Get(rel);
-                Assert.NotNull(result);
-                Assert.False(result.Any());
+                ICollection<string> result = relations.Get(rel);
+                Assert.Null(result);
             }
 
             [Fact]
-            public void NotFound_ReturnsEmpty()
+            public void NotFound_ReturnsNull()
             {
                 var relations = new RelationCollection<string>();
                 var result = relations.Get("other");
-                Assert.NotNull(result);
-                Assert.False(result.Any());
+                Assert.Null(result);
             }
 
             [Fact]
-            public void AddedAndRemoved_ReturnsEmpty()
+            public void AddedAndRemoved_ReturnsNull()
             {
                 var relations = new RelationCollection<string>();
                 var item = "something";
                 relations.Add("other", item);
                 relations.Remove("other");
                 var result = relations.Get("other");
-                Assert.NotNull(result);
-                Assert.False(result.Any());
+                Assert.Null(result);
+
             }
 
             [Fact]
@@ -333,74 +217,48 @@ namespace Societatis.HAL.Tests
             }
 
             [Fact]
-            public void CannotCastBackToCollection()
+            public void ReturnsActualCollection()
             {
                 var relations = new RelationCollection<string>();
-                relations.Add("other", "item");
-                IEnumerable<string> items = relations.Get("other");
-                Assert.NotNull(items);
-                ICollection<string> result = null;
-                Assert.Throws<InvalidCastException>(() => result = (ICollection<string>)items);
+                ICollection<string> expected = new List<string> { "Hi", "these", "are", "strings" };
+                relations["other"] = expected;
+                ICollection<string> actual = relations.Get("other");
+                
+                Assert.Same(expected, actual);
             }
         }
 
-        public class IsSingleRelationMethod
-        {
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData("  ")]
-            public void RelNullOrWhitespace_ReturnsFalse(string rel)
-            {
-                var relations = new RelationCollection<string>();
-                bool result = relations.IsSingleRelation(rel);
-                Assert.False(result);
-            }
+        // public class IsSingleRelationMethod
+        // {
+        //     [Theory]
+        //     [InlineData(null)]
+        //     [InlineData("")]
+        //     [InlineData("  ")]
+        //     public void RelNullOrWhitespace_ReturnsFalse(string rel)
+        //     {
+        //         var relations = new RelationCollection<string>();
+        //         bool result = relations.IsSingleRelation(rel);
+        //         Assert.False(result);
+        //     }
 
-            [Fact]
-            public void AddedSingleRelation_ReturnsTrue()
-            {
-                var relations = new RelationCollection<string>();
-                relations.SingleRelations.Add("other");
-                bool result = relations.IsSingleRelation("other");
-                Assert.True(result);
-            }
+        //     [Fact]
+        //     public void AddedSingleRelation_ReturnsTrue()
+        //     {
+        //         var relations = new RelationCollection<string>();
+        //         relations.SingleRelations.Add("other");
+        //         bool result = relations.IsSingleRelation("other");
+        //         Assert.True(result);
+        //     }
 
-            [Fact]
-            public void NotAddedSingleRelation_ReturnsFalse()
-            {
-                var relations = new RelationCollection<string>();
-                relations.SingleRelations.Add("first");
-                bool result = relations.IsSingleRelation("second");
-                Assert.False(result);
-            }
-        }
-
-        public class RelationCountProperty
-        {
-            [Fact]
-            public void Default_Zero()
-            {
-                var relations = new RelationCollection<string>();
-                var result = relations.Count;
-                Assert.Equal(0, result);
-            }
-
-            [Fact]
-            public void CountAllRelations()
-            {
-                var item = "something";
-                var otherItem = "else";
-                var relations = new RelationCollection<string>();
-                relations.Add("first", item);
-                relations.Add("second", item);
-                relations.Add("second", otherItem);
-                relations.Add("third", item);
-                relations.Add("fourth", item);
-
-                Assert.Equal(4, relations.Count);
-            }
-        }
+        //     [Fact]
+        //     public void NotAddedSingleRelation_ReturnsFalse()
+        //     {
+        //         var relations = new RelationCollection<string>();
+        //         relations.SingleRelations.Add("first");
+        //         bool result = relations.IsSingleRelation("second");
+        //         Assert.False(result);
+        //     }
+        // }
 
         public class RelationsProperty
         {
@@ -473,7 +331,7 @@ namespace Societatis.HAL.Tests
                 var relations = new RelationCollection<string>();
                 relations.Add("other", "something");
                 relations.Remove("other");
-                Assert.Equal(0, relations.ItemCount);
+                Assert.Equal(0, relations.Count);
             }
         }
 
@@ -501,7 +359,7 @@ namespace Societatis.HAL.Tests
             public void ThrowsIfItemsNull()
             {
                 var relations = new RelationCollection<string>();
-                Assert.Throws<ArgumentNullException>(() => relations.Set("other", null as IEnumerable<string>));
+                Assert.Throws<ArgumentNullException>(() => relations.Set("other", null as ICollection<string>));
             }
 
             [Fact]
@@ -510,10 +368,9 @@ namespace Societatis.HAL.Tests
                 var relations = new RelationCollection<string>();
                 relations.Add("other", "something");
                 
-                relations.Set("other", Enumerable.Empty<string>());
+                relations.Set("other", new List<string>());
                 var result = relations.Get("other");
-                Assert.NotNull(result);
-                Assert.False(result.Any());
+                Assert.Null(result);
             }
 
             [Fact]
@@ -522,7 +379,7 @@ namespace Societatis.HAL.Tests
                 var relations = new RelationCollection<string>();
                 var item = "item";
                 relations.Set("other", item);
-                bool result = relations.Contains("other", item);
+                bool result = relations["other"].Contains(item);
                 Assert.True(result);
             }
 
@@ -554,46 +411,15 @@ namespace Societatis.HAL.Tests
             }
         }
 
-        public class SingleRelationsProperty
+        public class SingularRelationsProperty
         {
             [Fact]
             public void Default_Empty()
             {
                 var relations = new RelationCollection<string>();
-                var result = relations.SingleRelations;
+                var result = relations.SingularRelations;
                 Assert.NotNull(result);
-                Assert.Equal(0, result.Count);
-            }
-            
-            [Fact]
-            public void CanAdd()
-            {
-                var relations = new RelationCollection<string>();
-                relations.SingleRelations.Add("other");
-                Assert.True(relations.SingleRelations.Contains("other"));
-            }
-
-            [Fact]
-            public void CanRemove()
-            {
-                var relations = new RelationCollection<string>();
-                relations.SingleRelations.Add("first");
-                relations.SingleRelations.Add("second");
-
-                relations.SingleRelations.Remove("first");
-                Assert.False(relations.SingleRelations.Contains("first"));
-                Assert.True(relations.SingleRelations.Contains("second"));
-            }
-
-            [Fact]
-            public void DoubleAdd_AddedOnce()
-            {
-                var relations = new RelationCollection<string>();
-                relations.SingleRelations.Add("first");
-                relations.SingleRelations.Add("first");
-
-                Assert.Equal(1, relations.SingleRelations.Count);
-                Assert.True(relations.SingleRelations.Contains("first"));
+                Assert.Equal(0, result.Count());
             }
         }
     }

@@ -3,6 +3,7 @@ namespace Societatis.HAL.Tests
     using System.IO;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
+    using Societatis.HAL.Converters;
     using Xunit;
 
     public class ResourceJsonConverterTests
@@ -21,6 +22,12 @@ namespace Societatis.HAL.Tests
                 using (var reader = new JsonTextReader(file))
                 {
                     var serializer = new JsonSerializer();
+                    var resourceCollectionReader = new ResourceCollectionJsonReader();
+                    var mappingsConverter = new MappingJsonConverter();
+                    mappingsConverter.Mappings[typeof(IRelationCollection<ILink>)] = typeof(LinkCollection);
+                    mappingsConverter.Mappings[typeof(IRelationCollection<IResource>)] = typeof(RelationCollection<IResource>);
+                    serializer.Converters.Add(resourceCollectionReader);
+                    serializer.Converters.Add(new LinkCollectionJsonReader());
                     serializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     JsonConverter converter = new ResourceJsonConverter();
                     result = converter.ReadJson(reader, typeof(HALSpecResource), null, serializer);

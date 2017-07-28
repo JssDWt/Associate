@@ -18,6 +18,11 @@ namespace Societatis.HAL
         IEnumerable<string> RelationNames { get; }
 
         /// <summary>
+        /// Gets the relations that can only contain a single item.
+        /// </summary>
+        IEnumerable<string> SingularRelations { get; }
+
+        /// <summary>
         /// Clears all relations.
         /// </summary>
         void Clear();

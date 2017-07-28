@@ -8,28 +8,26 @@ namespace Societatis.HAL.Tests
     using System.Text;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Societatis.HAL;
+    using Societatis.HAL.Converters;
     using Xunit;
 
-    public class RelationCollectionJsonConverterTests
+    public class RelationCollectionJsonWriterTests
     {
-        public virtual string TestDataPath => Path.Combine("TestData", nameof(RelationCollectionJsonConverterTests));
+        public virtual string TestDataPath => Path.Combine("TestData", nameof(RelationCollectionJsonWriterTests));
 
         public class CanConvertMethod
         {
             [Theory]
             [InlineData(typeof(IRelationCollection<object>))]
-            [InlineData(typeof(IRelationCollection<>))]
-            [InlineData(typeof(RelationCollection<>))]
             [InlineData(typeof(RelationCollection<ILink>))]
             [InlineData(typeof(RelationCollection<Resource>))]
             [InlineData(typeof(LinkCollection))]
-            [InlineData(typeof(ResourceCollection))]
+            [InlineData(typeof(RelationCollection<Resource<string>>))]
             [InlineData(typeof(TestRelationCollection))]
             [InlineData(typeof(HighlyInheritedRelationCollection))]
             public void KnownTypes_ReturnTrue(Type type)
             {
-                JsonConverter converter = new RelationCollectionJsonConverter();
+                JsonConverter converter = new RelationCollectionJsonWriter();
                 bool result = converter.CanConvert(type);
                 Assert.True(result);
             }
@@ -37,40 +35,17 @@ namespace Societatis.HAL.Tests
             [Theory]
             [InlineData(typeof(object))]
             [InlineData(typeof(System.Collections.Generic.List<>))]
+            [InlineData(typeof(IRelationCollection<>))]
+            [InlineData(typeof(RelationCollection<>))]
             public void UnknownTypes_ReturnFalse(Type type)
             {
-                JsonConverter converter = new RelationCollectionJsonConverter();
+                JsonConverter converter = new RelationCollectionJsonWriter();
                 bool result = converter.CanConvert(type);
                 Assert.False(result);
             }
         }
 
-        public class ReadJsonMethod : RelationCollectionJsonConverterTests
-        {
-            public override string TestDataPath => Path.Combine(base.TestDataPath, nameof(ReadJsonMethod));
-
-            [Fact]
-            public void LinkCollection_Simple()
-            {
-                object result = null;
-                JsonConverter converter = new RelationCollectionJsonConverter();
-                using (var streamReader = File.OpenText(Path.Combine(this.TestDataPath, "LinkCollection_Simple.json")))
-                using (var reader = new JsonTextReader(streamReader))
-                {
-                    result = converter.ReadJson(reader, typeof(RelationCollection<Link>), null, new JsonSerializer());
-                }
-
-                var typedResult = Assert.IsType<RelationCollection<Link>>(result);
-                Assert.Equal(3, typedResult.Count);
-                Assert.Equal(3, typedResult.ItemCount);
-                Assert.Equal(new string[] { "self", "next", "find" }, typedResult.RelationNames);
-                Assert.Equal(new string[] { "self", "next", "find" }, typedResult.SingleRelations);
-                Assert.Equal(1, typedResult["self"].Count());
-                Assert.Equal(new Uri("/orders", UriKind.Relative), typedResult["self"].Single().HRef);
-            }
-        }
-
-        public class WriteJsonMethod: RelationCollectionJsonConverterTests
+        public class WriteJsonMethod: RelationCollectionJsonWriterTests
         {
             public override string TestDataPath => Path.Combine(base.TestDataPath, nameof(WriteJsonMethod));
 
@@ -80,8 +55,8 @@ namespace Societatis.HAL.Tests
                 JToken expectedJson = this.GetJsonFromFile("LinkCollection_Simple.json");
 
                 IRelationCollection<ILink> collection = new LinkCollection();
-                collection.SingleRelations.Add("next");
-                collection.SingleRelations.Add("find");
+                collection.MarkSingular("next");
+                collection.MarkSingular("find");
                 collection.Set("self", new Link(new Uri("/orders", UriKind.Relative)));
                 collection.Set("next", new Link(new Uri("/orders?page=2", UriKind.Relative)));
                 collection.Set("find", new Link(new Uri("/orders{?id}", UriKind.Relative)) {Templated = true});
@@ -92,7 +67,7 @@ namespace Societatis.HAL.Tests
                     using (var streamWriter = new StreamWriter(actualStream, Encoding.UTF8, 4096, true))
                     using (var jsonWriter = new JsonTextWriter(streamWriter))
                     {
-                        JsonConverter converter = new RelationCollectionJsonConverter();
+                        JsonConverter converter = new RelationCollectionJsonWriter();
                         converter.WriteJson(jsonWriter, collection, new JsonSerializer());
                     }
 
@@ -118,7 +93,7 @@ namespace Societatis.HAL.Tests
                     using (var streamWriter = new StreamWriter(actualStream, Encoding.UTF8, 4096, true))
                     using (var jsonWriter = new JsonTextWriter(streamWriter))
                     {
-                        JsonConverter converter = new RelationCollectionJsonConverter();
+                        JsonConverter converter = new RelationCollectionJsonWriter();
                         converter.WriteJson(jsonWriter, links, new JsonSerializer());
                     }
 
@@ -143,7 +118,7 @@ namespace Societatis.HAL.Tests
                     using (var streamWriter = new StreamWriter(actualStream, Encoding.UTF8, 4096, true))
                     using (var jsonWriter = new JsonTextWriter(streamWriter))
                     {
-                        JsonConverter converter = new RelationCollectionJsonConverter();
+                        JsonConverter converter = new RelationCollectionJsonWriter();
                         converter.WriteJson(jsonWriter, testRelations, new JsonSerializer());
                     }
 
